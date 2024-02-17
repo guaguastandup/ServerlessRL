@@ -14,7 +14,7 @@ type event interface {
 }
 
 type baseEvent struct {
-	id        int
+	id        int64
 	timestamp int64
 	heapIdx   int
 }
@@ -37,7 +37,7 @@ func (e *baseEvent) setHeapIdx(i int) {
 
 type eventQueue []event
 
-func (s *Server) newEventId() int {
+func (s *Server) newEventId() int64 {
 	s.currEventId++
 	return s.currEventId
 

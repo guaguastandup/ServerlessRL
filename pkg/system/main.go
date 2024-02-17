@@ -11,7 +11,9 @@ import (
 
 var Second int = 1000 // ms
 var Minute int = 60 * Second
-var defaultKeepAliveTime int = 5 * Minute
+
+// var defaultKeepAliveTime int = 1 * Second
+var defaultKeepAliveTime int = 1
 
 type Container struct {
 	ID               int
@@ -25,7 +27,7 @@ type Container struct {
 type Server struct { // Server-wide
 	// * event
 	EventQueue  eventQueue
-	currEventId int
+	currEventId int64
 	// * Container Map
 	AppContainerMap  map[string]*Container
 	totalContainerID int // 用于生成ContainerID
@@ -102,7 +104,7 @@ func (s *Server) handleEvent(e event) {
 }
 
 func main() {
-	if len(os.Args) > 0 {
+	if len(os.Args) > 1 {
 		num, _ := strconv.Atoi(os.Args[1])
 		defaultKeepAliveTime = num * Minute
 	}

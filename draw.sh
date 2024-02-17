@@ -1,0 +1,12 @@
+python3 draw.py 1s-1
+python3 draw.py 0min-1
+python3 draw.py 1min-1
+python3 draw.py 2min-1
+python3 draw.py 5min-1
+python3 draw.py 15min-1
+python3 draw.py 20min-1
+python3 draw.py 30min-1
+python3 draw.py 45min-1
+python3 draw.py 60min-1
+python3 draw.py 90min-1
+python3 draw.py 120min-1

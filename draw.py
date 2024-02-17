@@ -39,11 +39,15 @@ with open('./pkg/output/' + logPath + '.log', 'r') as file:
 
 
 # 创建DataFrame
-# mem_running_usage = mem_running_usage[20:]
-# mem_score = mem_score[20:]
-# time_score = time_score[20:]
-# warm_start_rate = warm_start_rate[20:]
-# mem_occupy_usage = mem_occupy_usage[20:]
+# 删除第一个和最后一个元素
+mem_running_usage = mem_running_usage[10: -1]
+mem_occupy_usage = mem_occupy_usage[10: -1]
+mem_score = mem_score[10: -1]
+time_score = time_score[10: -1]
+warm_start_rate = warm_start_rate[10: -1]
+cdf_warmstart = cdf_warmstart[10: -1]
+app_mem_score = app_mem_score[10: -1]
+app_time_score = app_time_score[10: -1]
 
 plt.figure(figsize=(15, 6))
 

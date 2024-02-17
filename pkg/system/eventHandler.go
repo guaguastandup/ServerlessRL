@@ -12,7 +12,7 @@ var AppTimeUsage map[string]int64 = make(map[string]int64)                  // a
 var AppRunningTimeUsage map[string]int64 = make(map[string]int64)           // appID -> running time usage
 
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
-	e.app.FunctionCnt += 1
+	// e.app.FunctionCnt += 1
 	AppFuncMap[e.app.AppID][e.function.FuncID] += 1
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 1 {
 		s.totalMemRunning += int64(MemoryFuncMap[e.function.AppID])
@@ -77,6 +77,7 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 	AppFuncMap[e.app.AppID] = make(map[string]int)
 	AppLeft[e.app.AppID] = make(map[string]int64)
 
+	e.app.FunctionCnt += 1
 	//! appInit -> functionStart
 	s.addEvent(&FunctionStartEvent{
 		baseEvent: baseEvent{
@@ -147,7 +148,8 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 		container := s.AppContainerMap[appID]
 		app := container.App
 		startTime := e.getTimestamp()
-		if app.InitDoneTimeStamp <= e.getTimestamp() { // 说明容器已经初始化完成
+		app.FunctionCnt += 1
+		if app.InitDoneTimeStamp < e.getTimestamp() { // 说明容器已经初始化完成
 			s.warmStartCnt++
 			s.appWarmStartCnt[appID] += 1
 		} else {

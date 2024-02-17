@@ -4,33 +4,25 @@ import (
 	"fmt"
 )
 
-var AppFuncMap map[string]map[string]int = make(map[string]map[string]int) // appID -> functionID -> start time
-
-// var timeAppUsage map[string]map[int64]int = make(map[string]map[int64]int)       // appID -> time
-// var timestampVistedMap map[string]map[int64]int = make(map[string]map[int64]int) // appID -> timestamp
-// var timestampMap map[string][]int64 = make(map[string][]int64)                   // appID -> timestamp
+var AppFuncMap map[string]map[string]int = make(map[string]map[string]int)  // appID -> functionID -> start time
+var AppLeft map[string]map[string]int64 = make(map[string]map[string]int64) // appID -> left time
+var AppMemUsage map[string]int64 = make(map[string]int64)                   // appID -> mem usage
+var AppRunningMemUsage map[string]int64 = make(map[string]int64)            // appID -> running mem usage
+var AppTimeUsage map[string]int64 = make(map[string]int64)                  // appID -> time usage
+var AppRunningTimeUsage map[string]int64 = make(map[string]int64)           // appID -> running time usage
 
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 	e.app.FunctionCnt += 1
-	// memory usage
-	if AppFuncMap[e.app.AppID] == nil {
-		AppFuncMap[e.app.AppID] = make(map[string]int)
-	}
 	AppFuncMap[e.app.AppID][e.function.FuncID] += 1
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 1 {
 		s.totalMemRunning += int64(MemoryFuncMap[e.function.AppID])
 	}
-	// time usgae
-	// if timestampVistedMap[e.app.AppID][e.getTimestamp()] == 0 {
-	// 	timestampMap[e.app.AppID] = append(timestampMap[e.app.AppID], e.getTimestamp())
-	// 	timestampVistedMap[e.app.AppID][e.getTimestamp()] = 1
-	// }
-	// timeAppUsage[e.app.AppID][e.getTimestamp()] += 1
-
+	if AppFuncMap[e.app.AppID][e.function.FuncID] > 0 && AppLeft[e.app.AppID][e.function.FuncID] == 0 {
+		AppLeft[e.app.AppID][e.function.FuncID] = e.getTimestamp()
+	}
 	if e.app.FunctionCnt > 0 && e.app.Left == -1 {
 		e.app.Left = e.getTimestamp()
 	}
-
 	//! functionStart -> functionFinish
 	s.addEvent(&FunctionFinishEvent{
 		baseEvent: baseEvent{
@@ -45,21 +37,19 @@ func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 
 func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 	e.app.FunctionCnt -= 1
+	AppFuncMap[e.app.AppID][e.function.FuncID] -= 1
+
 	e.app.LastIdleTime = e.getTimestamp() // 记录App最后一次空闲时间
 
-	AppFuncMap[e.app.AppID][e.function.FuncID] -= 1
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 0 {
 		s.totalMemRunning -= int64(MemoryFuncMap[e.function.AppID])
 	}
 
-	// timeAppUsage[e.app.AppID][e.getTimestamp()] -= 1
-	// if timestampVistedMap[e.app.AppID][e.getTimestamp()] == 0 {
-	// 	timestampMap[e.app.AppID] = append(timestampMap[e.app.AppID], e.getTimestamp())
-	// 	timestampVistedMap[e.app.AppID][e.getTimestamp()] = 1
-	// }
-
+	if AppFuncMap[e.app.AppID][e.function.FuncID] == 0 && AppLeft[e.app.AppID][e.function.FuncID] != 0 {
+		e.app.MemRunningGain += (e.getTimestamp() - AppLeft[e.app.AppID][e.function.FuncID]) * int64(MemoryFuncMap[e.function.AppID])
+		AppLeft[e.app.AppID][e.function.FuncID] = 0
+	}
 	if e.app.FunctionCnt == 0 && e.app.Left != -1 {
-		// s.TimeRunningUsage += (e.getTimestamp() - e.app.Left)
 		e.app.RunningGain += (e.getTimestamp() - e.app.Left)
 		e.app.Left = -1
 	}
@@ -84,9 +74,8 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 	e.app.InitDoneTimeStamp = e.getTimestamp() + int64(e.app.InitTime)
 	s.totalMemUsing += int64(e.app.MEMResources)
 
-	// timeAppUsage[e.app.AppID] = make(map[int64]int)
-	// timestampMap[e.app.AppID] = make([]int64, 0)
-	// timestampVistedMap[e.app.AppID] = make(map[int64]int)
+	AppFuncMap[e.app.AppID] = make(map[string]int)
+	AppLeft[e.app.AppID] = make(map[string]int64)
 
 	//! appInit -> functionStart
 	s.addEvent(&FunctionStartEvent{
@@ -105,23 +94,13 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 		return
 	}
 
-	// init := 0
-	// left := int64(-1)
-	// sum := int64(0)
-	// for _, k := range timestampMap[e.app.AppID] {
-	// 	v := timeAppUsage[e.app.AppID][k]
-	// 	init += v
-	// 	if left == -1 && init > 0 {
-	// 		left = k
-	// 	}
-	// 	if init == 0 && left != -1 {
-	// 		s.TimeRunningUsage += (k - left)
-	// 		sum += (k - left)
-	// 		left = -1
-	// 	}
-	// }
-
 	s.TimeRunningUsage += e.app.RunningGain
+	s.MEMRunningUsage += e.app.MemRunningGain
+
+	AppRunningMemUsage[e.app.AppID] += e.app.MemRunningGain
+	AppRunningTimeUsage[e.app.AppID] += e.app.RunningGain
+	AppMemUsage[e.app.AppID] += int64(e.app.MEMResources) * (e.getTimestamp() - e.app.InitTimeStamp)
+	AppTimeUsage[e.app.AppID] += e.getTimestamp() - e.app.InitTimeStamp
 
 	s.MemUsage += int64(e.app.MEMResources) * (e.getTimestamp() - e.app.InitTimeStamp)
 	s.TimeUsage += e.getTimestamp() - e.app.InitTimeStamp

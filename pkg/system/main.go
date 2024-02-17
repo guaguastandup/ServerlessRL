@@ -11,7 +11,7 @@ import (
 
 var Second int = 1000 // ms
 var Minute int = 60 * Second
-var defaultKeepAliveTime int = 3 * Minute
+var defaultKeepAliveTime int = 5 * Minute
 
 type Container struct {
 	ID               int
@@ -48,7 +48,10 @@ type Server struct { // Server-wide
 
 func (s *Server) Run() {
 	start := time.Now()
+	startTime := time.Now()
+	cnt := 0
 	for s.EventQueue.Len() > 0 {
+		cnt += 1
 		e := heap.Pop(&s.EventQueue).(event)
 		if e.getTimestamp() < s.currTime {
 			e.log()
@@ -56,16 +59,22 @@ func (s *Server) Run() {
 			panic("Event is not in chronological order")
 		}
 		s.currTime = e.getTimestamp()
-		s.handleEvent(e)
 		if e.String() == "BatchFunctionSubmitEvent" {
+			fmt.Println("time cost: ", time.Since(startTime).Seconds())
+			fmt.Println("Event Count: ", cnt)
 			fmt.Printf("MemOccupyingUsage: %.1f GB\n", float64(s.totalMemUsing/1024.0))
 			fmt.Printf("MEMRunningUsage: %.1f GB\n", float64(s.totalMemRunning/1024.0))
+			fmt.Printf("Mem Score: %.4f %%\n", 100.0*float64(s.MEMRunningUsage)/float64(s.MemUsage))
 			fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
 			fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
+			startTime = time.Now()
+			cnt = 0
 		}
+		s.handleEvent(e)
 	}
 	fmt.Printf("MemOccupyingUsage: %.1f GB\n", float64(s.totalMemUsing/1024.0))
 	fmt.Printf("MEMRunningUsage: %.1f GB\n", float64(s.totalMemRunning/1024.0))
+	fmt.Printf("Mem Score: %.4f %%\n", 100.0*float64(s.MEMRunningUsage)/float64(s.MemUsage))
 	fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
 	fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
 	fmt.Printf("totalRequest: %d\n", s.totalRequest)
@@ -105,7 +114,7 @@ func main() {
 		appRequestCnt:   make(map[string]int),
 	}
 	for day := 1; day <= 1; day++ {
-		for i := 0; i < 500; i++ {
+		for i := 0; i < 1140; i++ {
 			Server.addEvent(&BatchFunctionSubmitEvent{
 				baseEvent: baseEvent{
 					id:        Server.newEventId(),
@@ -119,6 +128,18 @@ func main() {
 	Server.Run()
 	for k, v := range Server.appWarmStartCnt {
 		fmt.Println("warmstart rate: ", float64(v)/float64(Server.appRequestCnt[k]))
+	}
+	for k, v := range AppRunningMemUsage {
+		if 100.0*float64(v)/float64(AppMemUsage[k]) > 100 {
+			fmt.Println(k, v, AppMemUsage[k])
+		}
+		fmt.Printf("app mem socre: %.5f\n", 100.0*float64(v)/float64(AppMemUsage[k]))
+	}
+	for k, v := range AppRunningTimeUsage {
+		if 100.0*float64(v)/float64(AppTimeUsage[k]) > 100 {
+			fmt.Println(k, v, AppTimeUsage[k])
+		}
+		fmt.Printf("app time socre: %.5f\n", 100.0*float64(v)/float64(AppTimeUsage[k]))
 	}
 }
 

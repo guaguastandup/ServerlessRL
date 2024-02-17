@@ -9,6 +9,8 @@ import (
 	"strconv"
 )
 
+var Prefix string = "/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/"
+
 type FUNCTION_TYPE int
 
 const (
@@ -64,9 +66,9 @@ func initMap() {
 func ParseAppFuncCnt(day int) {
 	var duration_file string
 	if day < 10 {
-		duration_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/duration/duration_d0%d.csv", day)
+		duration_file = fmt.Sprintf(Prefix+"duration/duration_d0%d.csv", day)
 	} else {
-		duration_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/duration/duration_d%d.csv", day)
+		duration_file = fmt.Sprintf(Prefix+"duration/duration_d%d.csv", day)
 	}
 	file, err := os.Open(duration_file)
 	if err != nil {
@@ -90,9 +92,9 @@ func ParseAppFuncCnt(day int) {
 func ParseMemory(day int) {
 	var memory_file string
 	if day < 10 {
-		memory_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/memory/mem_d0%d.csv", day)
+		memory_file = fmt.Sprintf(Prefix+"memory/mem_d0%d.csv", day)
 	} else {
-		memory_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/memory/mem_d%d.csv", day)
+		memory_file = fmt.Sprintf(Prefix+"memory/mem_d%d.csv", day)
 	}
 	file, err := os.Open(memory_file)
 	if err != nil {
@@ -128,9 +130,9 @@ func ParseMemory(day int) {
 func ParseDuration(day int) {
 	var duration_file string
 	if day < 10 {
-		duration_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/duration/duration_d0%d.csv", day)
+		duration_file = fmt.Sprintf(Prefix+"duration/duration_d0%d.csv", day)
 	} else {
-		duration_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/duration/duration_d%d.csv", day)
+		duration_file = fmt.Sprintf(Prefix+"duration/duration_d%d.csv", day)
 	}
 	fmt.Println("duration_file: ", duration_file)
 	file, err := os.Open(duration_file)
@@ -177,10 +179,10 @@ func ParseRequests(day int, minute int) []*Request {
 	var invocation_file string
 	if day < 10 {
 		// invocation_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/fake/invocation/d0%d/invocation_d0%d_m%d.csv", day, day, minute)
-		invocation_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/invocation/d0%d/invocation_d0%d_m%d.csv", day, day, minute)
+		invocation_file = fmt.Sprintf(Prefix+"invocation/d0%d/invocation_d0%d_m%d.csv", day, day, minute)
 	} else {
 		// invocation_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/fake/invocation/d%d/invocation_d%d_m%d.csv", day, day, minute)
-		invocation_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/invocation/d%d/invocation_d%d_m%d.csv", day, day, minute)
+		invocation_file = fmt.Sprintf(Prefix+"invocation/d%d/invocation_d%d_m%d.csv", day, day, minute)
 	}
 	file, err := os.Open(invocation_file)
 	if err != nil {
@@ -210,8 +212,8 @@ func ParseRequests(day int, minute int) []*Request {
 		if MemoryMap[appID] == 0 || DurationMap[appID][functionID] == 0 {
 			continue
 		}
-		if arrivalCnt > 10 {
-			arrivalCnt = 10
+		if arrivalCnt > 50 {
+			arrivalCnt = 50
 		}
 		for j := 0; j < int(arrivalCnt); j++ {
 			request := Request{
@@ -220,7 +222,7 @@ func ParseRequests(day int, minute int) []*Request {
 				FuncID:       functionID,
 				FuncType:     FunctionTypeMap[functionType],
 				ArrivalTime:  int64(1140*day*Minute + 60*1000*minute + rand.Intn(60*1000)),
-				RunTime:      int(float64(DurationMap[appID][functionID]) * (0.5 + float64(rand.Intn(70))/100.0)),
+				RunTime:      int(float64(DurationMap[appID][functionID]) * (0.5 + float64(rand.Intn(100))/100.0)),
 				LoadTime:     int(float64(ColdStartTimeMap[appID]) * 1.5),
 				MEMResources: float64(MemoryMap[appID]),
 			}

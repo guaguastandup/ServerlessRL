@@ -20,8 +20,8 @@ type Application struct {
 	KeepAliveTime int
 	LastIdleTime  int64
 	FinishTime    int64
-
 	// *
-	Left        int64
-	RunningGain int64
+	Left           int64
+	RunningGain    int64
+	MemRunningGain int64
 }

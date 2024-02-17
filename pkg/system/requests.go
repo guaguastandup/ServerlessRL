@@ -174,11 +174,12 @@ func ParseDuration(day int) {
 func ParseRequests(day int, minute int) []*Request {
 	// 读取csv文件
 	var requests []*Request = make([]*Request, 0)
-	// invocation_file := fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/fake/invocation/d0%d/invocation_d0%d_m%d.csv", day, day, minute)
 	var invocation_file string
 	if day < 10 {
+		// invocation_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/fake/invocation/d0%d/invocation_d0%d_m%d.csv", day, day, minute)
 		invocation_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/invocation/d0%d/invocation_d0%d_m%d.csv", day, day, minute)
 	} else {
+		// invocation_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/fake/invocation/d%d/invocation_d%d_m%d.csv", day, day, minute)
 		invocation_file = fmt.Sprintf("/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/invocation/d%d/invocation_d%d_m%d.csv", day, day, minute)
 	}
 	file, err := os.Open(invocation_file)
@@ -209,10 +210,9 @@ func ParseRequests(day int, minute int) []*Request {
 		if MemoryMap[appID] == 0 || DurationMap[appID][functionID] == 0 {
 			continue
 		}
-		if arrivalCnt > 50 {
-			arrivalCnt = 50
+		if arrivalCnt > 10 {
+			arrivalCnt = 10
 		}
-
 		for j := 0; j < int(arrivalCnt); j++ {
 			request := Request{
 				ID:           NewRequestID(),

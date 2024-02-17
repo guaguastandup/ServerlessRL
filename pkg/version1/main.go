@@ -11,7 +11,6 @@ var Second int = 1000 // ms
 var Minute int = 60 * Second
 var warmStartCnt int = 0
 var defaultKeepAliveTime int = 5 * Minute
-var appFinishCnt int = 0
 
 type Container struct {
 	ID               int
@@ -58,7 +57,6 @@ func (s *Server) Run() {
 			panic("Event is not in chronological order")
 		}
 		s.currTime = e.getTimestamp()
-		s.handleEvent(e)
 		if e.String() == "BatchFunctionSubmitEvent" {
 			fmt.Printf("MemOccupyingUsage: %.1f GB\n", float64(s.totalMemUsing/1024.0))
 			fmt.Printf("MEMRunningUsage: %.1f GB\n", float64(s.totalMemRunning/1024.0))
@@ -66,6 +64,7 @@ func (s *Server) Run() {
 			fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
 			fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(warmStartCnt)/float64(s.totalRequest))
 		}
+		s.handleEvent(e)
 	}
 	fmt.Printf("Simulation takes %v", time.Since(start))
 }

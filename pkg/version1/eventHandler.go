@@ -113,7 +113,6 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 	if e.app.FinishTime != e.getTimestamp() {
 		return
 	}
-	appFinishCnt += 1
 	s.MemUsage += (e.app.MEMResources * int((e.getTimestamp() - e.app.InitTimeStamp)))
 	s.TimeUsage += int(e.getTimestamp() - e.app.InitTimeStamp)
 	s.totalMemUsing -= int64(e.app.MEMResources)

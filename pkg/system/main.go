@@ -4,20 +4,22 @@ import (
 	"container/heap"
 	"fmt"
 	"log"
+	"os"
+	"strconv"
 	"time"
 )
 
 var Second int = 1000 // ms
 var Minute int = 60 * Second
-var defaultKeepAliveTime int = 5 * Minute
+var defaultKeepAliveTime int = 3 * Minute
 
 type Container struct {
 	ID               int
 	App              *Application
-	MEMUsage         int // 申请的Usage
-	MEMRunningUsage  int // 运行时的Usage
-	TimeUsage        int // 申请的Usage
-	TimeRunningUsage int // 运行时的Usage
+	MEMUsage         int64 // 申请的Usage
+	MEMRunningUsage  int64 // 运行时的Usage
+	TimeUsage        int64 // 申请的Usage
+	TimeRunningUsage int64 // 运行时的Usage
 }
 
 type Server struct { // Server-wide
@@ -29,14 +31,14 @@ type Server struct { // Server-wide
 	totalContainerID int // 用于生成ContainerID
 	// * usage
 	MEMCapacity      int
-	MemUsage         int // 当前的MEM总使用量
-	MEMRunningUsage  int // 任务运行的时候的MEM使用率, 有效值, unitMEMUsage * unitTime
-	TimeUsage        int
-	TimeRunningUsage int
+	MemUsage         int64 // 当前的MEM总使用量
+	MEMRunningUsage  int64 // 任务运行的时候的MEM使用率, 有效值, unitMEMUsage * unitTime
+	TimeUsage        int64
+	TimeRunningUsage int64
 	// * Time
 	currTime        int64
 	totalMemUsing   int64
-	totalMemRunning int
+	totalMemRunning int64
 	// * statistics
 	warmStartCnt    int
 	totalRequest    int64
@@ -58,11 +60,16 @@ func (s *Server) Run() {
 		if e.String() == "BatchFunctionSubmitEvent" {
 			fmt.Printf("MemOccupyingUsage: %.1f GB\n", float64(s.totalMemUsing/1024.0))
 			fmt.Printf("MEMRunningUsage: %.1f GB\n", float64(s.totalMemRunning/1024.0))
-			fmt.Printf("Mem Score: %.4f %%\n", 100.0*float64(s.MEMRunningUsage)/float64(s.MemUsage))
 			fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
 			fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
 		}
 	}
+	fmt.Printf("MemOccupyingUsage: %.1f GB\n", float64(s.totalMemUsing/1024.0))
+	fmt.Printf("MEMRunningUsage: %.1f GB\n", float64(s.totalMemRunning/1024.0))
+	fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
+	fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
+	fmt.Printf("totalRequest: %d\n", s.totalRequest)
+	fmt.Printf("warmStartCnt: %d\n", s.warmStartCnt)
 	fmt.Printf("Simulation takes %v", time.Since(start))
 }
 
@@ -86,6 +93,11 @@ func (s *Server) handleEvent(e event) {
 }
 
 func main() {
+	if len(os.Args) > 0 {
+		num, _ := strconv.Atoi(os.Args[1])
+		defaultKeepAliveTime = num * Minute
+	}
+	fmt.Println("default KeepAliveTime: ", defaultKeepAliveTime)
 	Server := &Server{
 		MEMCapacity:     1024 * 10,
 		AppContainerMap: make(map[string]*Container),
@@ -93,7 +105,7 @@ func main() {
 		appRequestCnt:   make(map[string]int),
 	}
 	for day := 1; day <= 1; day++ {
-		for i := 0; i < 1140; i++ {
+		for i := 0; i < 500; i++ {
 			Server.addEvent(&BatchFunctionSubmitEvent{
 				baseEvent: baseEvent{
 					id:        Server.newEventId(),

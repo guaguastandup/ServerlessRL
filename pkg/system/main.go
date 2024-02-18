@@ -14,6 +14,7 @@ var Minute int = 60 * Second
 
 // var defaultKeepAliveTime int = 1 * Second
 var defaultKeepAliveTime int = 1
+var defaultPreWarmTime int = 1 * Minute
 
 type Container struct {
 	ID               int
@@ -74,13 +75,13 @@ func (s *Server) Run() {
 		}
 		s.handleEvent(e)
 	}
-	fmt.Printf("MemOccupyingUsage: %.1f GB\n", float64(s.totalMemUsing/1024.0))
-	fmt.Printf("MEMRunningUsage: %.1f GB\n", float64(s.totalMemRunning/1024.0))
-	fmt.Printf("Mem Score: %.4f %%\n", 100.0*float64(s.MEMRunningUsage)/float64(s.MemUsage))
-	fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
-	fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
-	fmt.Printf("totalRequest: %d\n", s.totalRequest)
-	fmt.Printf("warmStartCnt: %d\n", s.warmStartCnt)
+	// fmt.Printf("MemOccupyingUsage: %.1f GB\n", float64(s.totalMemUsing/1024.0))
+	// fmt.Printf("MEMRunningUsage: %.1f GB\n", float64(s.totalMemRunning/1024.0))
+	// fmt.Printf("Mem Score: %.4f %%\n", 100.0*float64(s.MEMRunningUsage)/float64(s.MemUsage))
+	// fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
+	// fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
+	// fmt.Printf("totalRequest: %d\n", s.totalRequest)
+	// fmt.Printf("warmStartCnt: %d\n", s.warmStartCnt)
 	fmt.Printf("Simulation takes %v", time.Since(start))
 }
 
@@ -105,10 +106,16 @@ func (s *Server) handleEvent(e event) {
 
 func main() {
 	if len(os.Args) > 1 {
-		num, _ := strconv.Atoi(os.Args[1])
-		defaultKeepAliveTime = num * Minute
+		// convert string to float
+		num, _ := strconv.ParseFloat(os.Args[1], 64)
+		defaultKeepAliveTime = int(num * float64(Minute))
+	}
+	if len(os.Args) > 2 {
+		num, _ := strconv.ParseFloat(os.Args[2], 64)
+		defaultPreWarmTime = int(num * float64(Minute))
 	}
 	fmt.Println("default KeepAliveTime: ", defaultKeepAliveTime)
+	fmt.Println("dufault PreWarmTime: ", defaultPreWarmTime)
 	Server := &Server{
 		MEMCapacity:     1024 * 10,
 		AppContainerMap: make(map[string]*Container),

@@ -18,6 +18,7 @@ type Application struct {
 	InitDoneTimeStamp int64
 
 	KeepAliveTime int
+	PreWarmTime   int
 	LastIdleTime  int64
 	FinishTime    int64
 	// *

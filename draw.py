@@ -49,7 +49,9 @@ cdf_warmstart = cdf_warmstart[10: -1]
 app_mem_score = app_mem_score[10: -1]
 app_time_score = app_time_score[10: -1]
 
-plt.figure(figsize=(15, 6))
+
+plt.figure(figsize=(15, 10))
+plt.rcParams.update({'font.size': 15})
 
 # # 绘制MEMRunningUsage
 plt.subplot(2, 2, 1)

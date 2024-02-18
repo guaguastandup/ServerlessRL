@@ -69,32 +69,52 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 }
 
 func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
-	cont := s.NewContainer(e)
-	e.app.InitTimeStamp = e.getTimestamp()
-	e.app.InitDoneTimeStamp = e.getTimestamp() + int64(e.app.InitTime)
-	s.totalMemUsing += int64(e.app.MEMResources)
+	flag := 0
+	if s.AppContainerMap[e.app.AppID] == nil {
+		flag = 1
+		_ = s.NewContainer(e)
+		e.app.InitTimeStamp = e.getTimestamp()
+		e.app.InitDoneTimeStamp = e.getTimestamp() + int64(e.app.InitTime)
+		s.totalMemUsing += int64(e.app.MEMResources)
 
-	AppFuncMap[e.app.AppID] = make(map[string]int)
-	AppLeft[e.app.AppID] = make(map[string]int64)
+		AppFuncMap[e.app.AppID] = make(map[string]int)
+		AppLeft[e.app.AppID] = make(map[string]int64)
+	}
+	if flag == 1 && e.function == nil { // 预热
+		e.app.FinishTime = e.getTimestamp() + int64(e.app.InitTime) + int64(e.app.KeepAliveTime)
+		s.addEvent(&AppFinishEvent{
+			baseEvent: baseEvent{
+				id:        s.newEventId(),
+				timestamp: e.getTimestamp() + int64(e.app.InitTime) + int64(e.app.KeepAliveTime),
+			},
+			app:       e.app,
+			container: s.AppContainerMap[e.app.AppID],
+		})
+	}
 
-	e.app.FunctionCnt += 1
-	//! appInit -> functionStart
-	s.addEvent(&FunctionStartEvent{
-		baseEvent: baseEvent{
-			id:        s.newEventId(),
-			timestamp: e.getTimestamp() + int64(e.app.InitTime),
-		},
-		function:  e.function,
-		app:       e.app,
-		container: cont,
-	})
+	if e.function != nil {
+		e.app.FunctionCnt += 1
+		startTime := e.getTimestamp()
+		if e.app.InitDoneTimeStamp > e.getTimestamp() {
+			startTime = e.app.InitDoneTimeStamp
+		}
+		//! appInit -> functionStart
+		s.addEvent(&FunctionStartEvent{
+			baseEvent: baseEvent{
+				id:        s.newEventId(),
+				timestamp: startTime,
+			},
+			function:  e.function,
+			app:       e.app,
+			container: s.AppContainerMap[e.app.AppID],
+		})
+	}
 }
 
 func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 	if e.app == nil || e.app.FunctionCnt != 0 || e.app.FinishTime != e.getTimestamp() {
 		return
 	}
-
 	s.TimeRunningUsage += e.app.RunningGain
 	s.MEMRunningUsage += e.app.MemRunningGain
 
@@ -108,6 +128,27 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 	s.totalMemUsing -= int64(e.app.MEMResources)
 
 	s.AppContainerMap[e.app.AppID] = nil
+	if e.app.PreWarmTime > 0 {
+		s.addEvent(&AppInitEvent{
+			baseEvent: baseEvent{
+				id:        s.newEventId(),
+				timestamp: e.getTimestamp() + int64(e.app.PreWarmTime),
+			},
+			function: nil,
+			app: &Application{
+				AppID:             e.app.AppID,
+				MEMResources:      e.app.MEMResources,
+				FunctionCnt:       0,
+				InitTime:          e.app.InitTime,
+				InitTimeStamp:     e.getTimestamp() + int64(e.app.PreWarmTime),
+				InitDoneTimeStamp: e.getTimestamp() + int64(e.app.PreWarmTime+e.app.InitTime),
+				KeepAliveTime:     e.app.KeepAliveTime,
+				PreWarmTime:       0,
+				FinishTime:        0,
+				Left:              int64(-1),
+			},
+		})
+	}
 	e.app = nil
 }
 
@@ -181,6 +222,7 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 				InitTimeStamp:     e.getTimestamp(),
 				InitDoneTimeStamp: e.getTimestamp() + int64(ColdStartTimeMap[appID]),
 				KeepAliveTime:     defaultKeepAliveTime,
+				PreWarmTime:       defaultPreWarmTime,
 				FinishTime:        0,
 				Left:              int64(-1),
 			},

@@ -1,4 +1,4 @@
-dataset/*
+*.csv
 reproducing-serverless-in-the-wild/*
 pkg/output/*
 .DS_Store

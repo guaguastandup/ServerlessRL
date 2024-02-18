@@ -97,17 +97,34 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 			ContainerIdleList = append(ContainerIdleList, e.container)
 		}
 	}
-	//! functionFinish -> appTryFinish
-	if e.getTimestamp()+int64(e.app.KeepAliveTime) > e.app.FinishTime { // 产生了新的结束时间
-		e.app.FinishTime = e.getTimestamp() + int64(e.app.KeepAliveTime)
+	prewarmWindow, keepAliveWindow := getWindow(e.app)
+	e.app.KeepAliveTime = keepAliveWindow * 60 * 1000
+	e.app.PreWarmTime = prewarmWindow * 60 * 1000
+	if prewarmWindow == 0 { // 使用KeepAlive的策略
+		//! functionFinish -> appTryFinish
+		if e.getTimestamp()+int64(e.app.KeepAliveTime) > e.app.FinishTime { // 产生了新的结束时间
+			e.app.FinishTime = e.getTimestamp() + int64(e.app.KeepAliveTime)
+			s.addEvent(&AppFinishEvent{
+				baseEvent: baseEvent{
+					id:        s.newEventId(),
+					timestamp: e.getTimestamp() + int64(e.app.KeepAliveTime),
+				},
+				app:       e.app,
+				container: e.container,
+			})
+		}
+	} else {
+		e.app.FinishTime = e.getTimestamp() // 立刻删除
+		//! functionFinish -> appFinish
 		s.addEvent(&AppFinishEvent{
 			baseEvent: baseEvent{
 				id:        s.newEventId(),
-				timestamp: e.getTimestamp() + int64(e.app.KeepAliveTime),
+				timestamp: e.getTimestamp() + int64(e.app.PreWarmTime) + int64(e.app.KeepAliveTime),
 			},
 			app:       e.app,
 			container: e.container,
 		})
+
 	}
 }
 

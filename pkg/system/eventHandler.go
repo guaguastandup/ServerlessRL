@@ -11,7 +11,38 @@ var AppRunningMemUsage map[string]int64 = make(map[string]int64)            // a
 var AppTimeUsage map[string]int64 = make(map[string]int64)                  // appID -> time usage
 var AppRunningTimeUsage map[string]int64 = make(map[string]int64)           // appID -> running time usage
 
+var ContainerIdleList []*Container
+var ContainerIdleMap map[*Container]bool = make(map[*Container]bool) // 一开始全都是空闲的
+
+var EvictedMemory int64 = 0
+
+func (s *Server) handleEvictEvent(e *baseEvent) {
+	for s.totalMemUsing > s.MEMCapacity {
+		// 删除第一个空闲的容器
+		if len(ContainerIdleList) == 0 {
+			panic("No idle container to evict!")
+		}
+		container := ContainerIdleList[0]
+		ContainerIdleList = ContainerIdleList[1:]
+		ContainerIdleMap[container] = false
+		s.totalMemUsing -= int64(container.App.MEMResources)
+		EvictedMemory += int64(container.App.MEMResources)
+		s.handleAppFinishEvent(&AppFinishEvent{ // 即刻执行
+			baseEvent: baseEvent{
+				id:        s.newEventId(),
+				timestamp: e.getTimestamp(),
+			},
+			app:       container.App,
+			container: container,
+		})
+	}
+}
+
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
+	if ContainerIdleMap[e.container] {
+		ContainerIdleMap[e.container] = false
+		RemoveIdleContainer(e.container)
+	}
 	AppFuncMap[e.app.AppID][e.function.FuncID] += 1
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 1 {
 		s.totalMemRunning += int64(MemoryFuncMap[e.function.AppID])
@@ -52,7 +83,12 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 		e.app.RunningGain += (e.getTimestamp() - e.app.Left)
 		e.app.Left = -1
 	}
-
+	if e.app.FunctionCnt == 0 {
+		if !ContainerIdleMap[e.container] {
+			ContainerIdleMap[e.container] = true
+			ContainerIdleList = append(ContainerIdleList, e.container)
+		}
+	}
 	//! functionFinish -> appTryFinish
 	if e.getTimestamp()+int64(e.app.KeepAliveTime) > e.app.FinishTime { // 产生了新的结束时间
 		e.app.FinishTime = e.getTimestamp() + int64(e.app.KeepAliveTime)
@@ -75,7 +111,12 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 		e.app.InitTimeStamp = e.getTimestamp()
 		e.app.InitDoneTimeStamp = e.getTimestamp() + int64(e.app.InitTime)
 		s.totalMemUsing += int64(e.app.MEMResources)
-
+		if s.totalMemUsing > s.MEMCapacity { // Memory Overload
+			s.handleEvictEvent(&baseEvent{
+				id:        s.newEventId(),
+				timestamp: e.getTimestamp(),
+			})
+		}
 		AppFuncMap[e.app.AppID] = make(map[string]int)
 		AppLeft[e.app.AppID] = make(map[string]int64)
 	}
@@ -226,5 +267,18 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 				Left:              int64(-1),
 			},
 		})
+	}
+}
+
+func RemoveIdleContainer(cont *Container) {
+	for i, v := range ContainerIdleList {
+		if v == cont {
+			if i == len(ContainerIdleList)-1 { // 考虑如果是最后一个元素的情况
+				ContainerIdleList = ContainerIdleList[:i]
+			} else {
+				ContainerIdleList = append(ContainerIdleList[:i], ContainerIdleList[i+1:]...)
+			}
+			return
+		}
 	}
 }

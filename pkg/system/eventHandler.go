@@ -12,7 +12,6 @@ var AppTimeUsage map[string]int64 = make(map[string]int64)                  // a
 var AppRunningTimeUsage map[string]int64 = make(map[string]int64)           // appID -> running time usage
 
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
-	// e.app.FunctionCnt += 1
 	AppFuncMap[e.app.AppID][e.function.FuncID] += 1
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 1 {
 		s.totalMemRunning += int64(MemoryFuncMap[e.function.AppID])

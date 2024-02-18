@@ -135,20 +135,14 @@ func main() {
 		}
 	}
 	Server.Run()
-	for k, v := range Server.appWarmStartCnt {
-		fmt.Println("warmstart rate: ", float64(v)/float64(Server.appRequestCnt[k]))
+	for k, v := range Server.appRequestCnt {
+		fmt.Println("warmstart rate: ", float64(Server.appWarmStartCnt[k])/float64(v))
 	}
-	for k, v := range AppRunningMemUsage {
-		if 100.0*float64(v)/float64(AppMemUsage[k]) > 100 {
-			fmt.Println(k, v, AppMemUsage[k])
-		}
-		fmt.Printf("app mem socre: %.5f\n", 100.0*float64(v)/float64(AppMemUsage[k]))
+	for k, v := range AppMemUsage {
+		fmt.Printf("app mem socre: %.5f\n", 100.0*float64(AppRunningMemUsage[k])/float64(v))
 	}
-	for k, v := range AppRunningTimeUsage {
-		if 100.0*float64(v)/float64(AppTimeUsage[k]) > 100 {
-			fmt.Println(k, v, AppTimeUsage[k])
-		}
-		fmt.Printf("app time socre: %.5f\n", 100.0*float64(v)/float64(AppTimeUsage[k]))
+	for k, v := range AppTimeUsage {
+		fmt.Printf("app time socre: %.5f\n", 100.0*float64(AppRunningTimeUsage[k])/float64(v))
 	}
 }
 

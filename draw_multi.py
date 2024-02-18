@@ -13,18 +13,13 @@ app_mem_score = {}
 app_time_score = {}
 
 logPath = [
-    '0min-1',
-    '1s-1',
-    '1min-1',
-    '5min-1',
-    '10min-1',
-    '15min-1',
-    '20min-1',
-    '30min-1', 
-    '45min-1',
-    '60min-1',
-    '90min-1',
-    '120min-1'
+    # '5min-0min',
+    # '5min-1min',
+    '10min-0min',
+    '10min-0.5min',
+    '10min-1min',
+    # '60min-0min',
+    '120min-0min',
 ]
 
 for i in range(len(logPath)):
@@ -57,30 +52,22 @@ for i in range(len(logPath)):
             elif line.startswith('app time socre'):
                 app_time_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
 
-mem_running_usage[logPath[i]] = mem_running_usage[logPath[i]][10: -1]
-mem_occupy_usage[logPath[i]] = mem_occupy_usage[logPath[i]][10: -1]
-mem_score[logPath[i]] = mem_score[logPath[i]][10: -1]
-time_score[logPath[i]] = time_score[logPath[i]][10: -1]
-warm_start_rate[logPath[i]] = warm_start_rate[logPath[i]][10: -1]
-cdf_warmstart[logPath[i]] = cdf_warmstart[logPath[i]][10: -1]
-app_mem_score[logPath[i]] = app_mem_score[logPath[i]][10: -1]
-app_time_score[logPath[i]] = app_time_score[logPath[i]][10: -1]
+mem_running_usage[logPath[i]] = mem_running_usage[logPath[i]][10: -5]
+mem_occupy_usage[logPath[i]] = mem_occupy_usage[logPath[i]][10: -5]
+mem_score[logPath[i]] = mem_score[logPath[i]][10: -5]
+time_score[logPath[i]] = time_score[logPath[i]][10: -5]
+warm_start_rate[logPath[i]] = warm_start_rate[logPath[i]][10: -5]
+cdf_warmstart[logPath[i]] = cdf_warmstart[logPath[i]][10: -5]
+app_mem_score[logPath[i]] = app_mem_score[logPath[i]][10: -5]
+app_time_score[logPath[i]] = app_time_score[logPath[i]][10: -5]
 
 # set plot fontsize
 # plt.rcParams.update({'font.size': 20})
 plt.rcParams.update({'font.size': 15})
 
-plt.figure(figsize=(25, 25))
-plt.subplot(4, 2, 1)
-for i in range(len(logPath)):
-    plt.plot(mem_running_usage[logPath[i]], label=logPath[i])
-plt.legend(loc='upper right')
-plt.title('MEMRunningUsage')
-plt.xlabel('Minute')
-plt.ylabel('Usage (GB)')
-plt.grid(True)
-
-plt.subplot(4, 2, 2)
+plt.figure(figsize=(20, 15))
+plt.subplot(3, 2, 1)
+plt.plot(mem_running_usage[logPath[0]], label='Mem Running')
 for i in range(len(logPath)):
     plt.plot(mem_occupy_usage[logPath[i]], label=logPath[i])
 plt.legend(loc='upper right')
@@ -89,25 +76,7 @@ plt.xlabel('Minute')
 plt.ylabel('Usage (GB)')
 plt.grid(True)
 
-plt.subplot(4, 2, 3)
-for i in range(len(logPath)):
-    plt.plot(mem_score[logPath[i]], label=logPath[i])
-plt.legend(loc='upper right')
-plt.title('Mem Score')
-plt.xlabel('Minute')
-plt.ylabel('Score (%)')
-plt.grid(True)
-
-plt.subplot(4, 2, 4)
-for i in range(len(logPath)):
-    plt.plot(time_score[logPath[i]], label=logPath[i])
-plt.legend(loc='upper right')
-plt.title('Time Score')
-plt.xlabel('Minute')
-plt.ylabel('Score (%)')
-plt.grid(True)
-
-plt.subplot(4, 2, 5)
+plt.subplot(3, 2, 2)
 for i in range(len(logPath)):
     for j in range(len(cdf_warmstart[logPath[i]])):
         cdf_warmstart[logPath[i]][j] = (1.0 - cdf_warmstart[logPath[i]][j]) * 100
@@ -120,7 +89,26 @@ plt.xlabel('ColdStart Rate (%)')
 plt.ylabel('CDF')
 plt.grid(True)
 
-plt.subplot(4, 2, 7)
+plt.subplot(3, 2, 3)
+for i in range(len(logPath)):
+    plt.plot(mem_score[logPath[i]], label=logPath[i])
+plt.legend(loc='upper right')
+plt.title('Mem Score')
+plt.xlabel('Minute')
+plt.ylabel('Score (%)')
+plt.grid(True)
+
+plt.subplot(3, 2, 4)
+for i in range(len(logPath)):
+    plt.plot(time_score[logPath[i]], label=logPath[i])
+plt.legend(loc='upper right')
+plt.title('Time Score')
+plt.xlabel('Minute')
+plt.ylabel('Score (%)')
+plt.grid(True)
+
+
+plt.subplot(3, 2, 5)
 for i in range(len(logPath)):
     data_sorted = np.sort(app_mem_score[logPath[i]])
     cdf = np.arange(1, len(data_sorted) + 1) / len(data_sorted)
@@ -130,7 +118,7 @@ plt.title('CDF of Mem Score')
 plt.xlabel('Mem Score (%)')
 plt.ylabel('CDF')
 
-plt.subplot(4, 2, 8)
+plt.subplot(3, 2, 6)
 for i in range(len(logPath)):
     data_sorted = np.sort(app_time_score[logPath[i]])
     cdf = np.arange(1, len(data_sorted) + 1) / len(data_sorted)
@@ -142,4 +130,18 @@ plt.ylabel('CDF')
 
 plt.tight_layout()
 plt.savefig('./pkg/result/multi.png')
+plt.close()
+
+
+plt.figure(figsize=(15, 25))
+for i in range(len(logPath)):
+    data_sorted = np.sort(cdf_warmstart[logPath[i]])
+    cdf = np.arange(1, len(data_sorted) + 1) / len(data_sorted)
+    plt.plot(data_sorted, cdf, label=logPath[i])
+plt.legend(loc='upper right')
+plt.title('CDF of ColdStart Rate')
+plt.xlabel('ColdStart Rate (%)')
+plt.ylabel('CDF')
+plt.grid(True)
+plt.savefig("./pkg/result/cdf_multi.png")
 plt.close()

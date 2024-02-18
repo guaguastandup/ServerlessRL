@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 )
 
 var AppFuncMap map[string]map[string]int = make(map[string]map[string]int)  // appID -> functionID -> start time
@@ -16,6 +17,13 @@ var ContainerIdleMap map[*Container]bool = make(map[*Container]bool) // 一开�
 
 var EvictedMemory int64 = 0
 
+type histogram struct {
+	sum   int
+	array []int
+}
+
+var appHistogram map[string]*histogram = make(map[string]*histogram)
+
 func (s *Server) handleEvictEvent(e *baseEvent) {
 	for s.totalMemUsing > s.MEMCapacity {
 		// 删除第一个空闲的容器
@@ -24,9 +32,12 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 		}
 		container := ContainerIdleList[0]
 		ContainerIdleList = ContainerIdleList[1:]
+		if !ContainerIdleMap[container] {
+			panic("impossible")
+		}
 		ContainerIdleMap[container] = false
-		s.totalMemUsing -= int64(container.App.MEMResources)
 		EvictedMemory += int64(container.App.MEMResources)
+		container.App.FinishTime = e.getTimestamp()
 		s.handleAppFinishEvent(&AppFinishEvent{ // 即刻执行
 			baseEvent: baseEvent{
 				id:        s.newEventId(),
@@ -68,13 +79,10 @@ func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 	e.app.FunctionCnt -= 1
 	AppFuncMap[e.app.AppID][e.function.FuncID] -= 1
-
 	e.app.LastIdleTime = e.getTimestamp() // 记录App最后一次空闲时间
-
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 0 {
 		s.totalMemRunning -= int64(MemoryFuncMap[e.function.AppID])
 	}
-
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 0 && AppLeft[e.app.AppID][e.function.FuncID] != 0 {
 		e.app.MemRunningGain += (e.getTimestamp() - AppLeft[e.app.AppID][e.function.FuncID]) * int64(MemoryFuncMap[e.function.AppID])
 		AppLeft[e.app.AppID][e.function.FuncID] = 0
@@ -104,6 +112,12 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 }
 
 func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
+	if appHistogram[e.app.AppID] == nil {
+		appHistogram[e.app.AppID] = &histogram{
+			sum:   0,
+			array: make([]int, 360),
+		}
+	}
 	flag := 0
 	if s.AppContainerMap[e.app.AppID] == nil {
 		flag = 1
@@ -201,8 +215,16 @@ func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 		ParseDuration(e.day)
 	}
 	requests := ParseRequests(e.day, e.minute)
+	preTime := int64(0)
 	//! batchFunctionSubmit -> functionSubmit
 	for _, req := range requests {
+		if preTime != 0 {
+			interval := float64(req.ArrivalTime - preTime)
+			// 向上取整
+			interval_min := int(math.Ceil(interval / (1000 * 60)))
+			appHistogram[req.AppID].sum += 1
+			appHistogram[req.AppID].array[interval_min] += 1
+		}
 		s.addEvent(&FunctionSubmitEvent{
 			baseEvent: baseEvent{
 				id:        s.newEventId(),
@@ -281,4 +303,26 @@ func RemoveIdleContainer(cont *Container) {
 			return
 		}
 	}
+}
+
+func getWindow(app *Application) (int, int) {
+	prewarmWindow, keepAliveWindow := 0, 0
+	sum1, sum2 := 0, 0
+	for i := 0; i < 360; i++ {
+		if prewarmWindow != 0 {
+			sum1 += appHistogram[app.AppID].array[i]
+		}
+		sum2 += appHistogram[app.AppID].array[i]
+		if float64(sum1) >= 0.05*float64(appHistogram[app.AppID].sum) {
+			prewarmWindow = i
+			if float64(sum1) >= 0.1*float64(appHistogram[app.AppID].sum) {
+				prewarmWindow = 0
+			}
+		}
+		if float64(sum2) >= 0.9*float64(appHistogram[app.AppID].sum) {
+			keepAliveWindow = i
+			break
+		}
+	}
+	return prewarmWindow, keepAliveWindow
 }

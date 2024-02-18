@@ -27,10 +27,11 @@ logPath = [
     # '1140min-0min',
     # '120min-0min-1000GB',
     # '120min-0min-5000GB',
-    '5min-0min-150GB',
+    '5min-0min-300GB',
+    '5min-0min-400GB',
     '5min-0min-500GB',
-    '5min-0min-1000GB',
-    '5min-0min-1500GB',
+    # '5min-0min-1000GB',
+    # '5min-0min-1500GB',
 ]
 
 for i in range(len(logPath)):
@@ -163,16 +164,19 @@ for file in logPath:
     dot50 = 0
     dot75 = 0
     dot90 = 0    
+    dot100 = 0
     print(len(cdf_warmstart[file]))
     for i in range(len(cdf_warmstart[file])):
-        if 0 < cdf_warmstart[file][i] < 0.1:
+        if 0 <= cdf_warmstart[file][i] < 10:
             dot10 += 1
-        elif 0.1 <= cdf_warmstart[file][i] < 0.25:
+        elif 10 <= cdf_warmstart[file][i] < 25:
             dot25 += 1
-        elif 0.25 <= cdf_warmstart[file][i] < 0.5:
+        elif 25 <= cdf_warmstart[file][i] < 50:
             dot50 += 1
-        elif 0.5 <= cdf_warmstart[file][i] < 0.75:
+        elif 50 <= cdf_warmstart[file][i] < 75:
             dot75 += 1
-        elif 0.75 <= cdf_warmstart[file][i] < 0.9:
+        elif 75 <= cdf_warmstart[file][i] < 90:
             dot90 += 1
-    print(file, dot10, dot25, dot50, dot75, dot90)
+        elif 90 <= cdf_warmstart[file][i] <= 100:
+            dot100 += 1
+    print(file, dot10, dot25, dot50, dot75, dot90, dot100)

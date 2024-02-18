@@ -129,7 +129,7 @@ func main() {
 		appRequestCnt:   make(map[string]int),
 	}
 	for day := 1; day <= 1; day++ {
-		for i := 0; i < 1140; i++ {
+		for i := 0; i < 500; i++ {
 			Server.addEvent(&BatchFunctionSubmitEvent{
 				baseEvent: baseEvent{
 					id:        Server.newEventId(),

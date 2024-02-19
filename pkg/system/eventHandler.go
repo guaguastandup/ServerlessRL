@@ -27,6 +27,14 @@ type histogram struct {
 
 var appHistogram map[string]*histogram = make(map[string]*histogram)
 
+func stringEquals(a, b string) bool {
+	for i := 0; i < len(b); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
 func (s *Server) handleEvictEvent(e *baseEvent) {
 	for s.totalMemUsing > s.MEMCapacity {
 		if len(ContainerIdleList) == 0 {
@@ -34,14 +42,12 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 		}
 		var container *Container
 		// 删除第一个空闲的容器
-		if policy == "lru" {
+		if stringEquals(policy, "lru") {
 			container = ContainerIdleList[0]
-			ContainerIdleList = ContainerIdleList[1:]
-		} else if policy == "random" {
+		} else if stringEquals(policy, "random") {
 			index := rand.Intn(len(ContainerIdleList))
 			container = ContainerIdleList[index]
-			RemoveIdleContainer(container)
-		} else if policy == "maxmem" {
+		} else if stringEquals(policy, "maxmem") {
 			maxMem := 0
 			for _, cont := range ContainerIdleList {
 				if cont.App.MEMResources > maxMem {
@@ -49,8 +55,7 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 					container = cont
 				}
 			}
-			RemoveIdleContainer(container)
-		} else if policy == "maxKeepAlive" {
+		} else if stringEquals(policy, "maxKeepAlive") {
 			maxKeepAlive := 0
 			for _, cont := range ContainerIdleList {
 				if cont.App.KeepAliveTime > maxKeepAlive {
@@ -58,7 +63,7 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 					container = cont
 				}
 			}
-		} else if policy == "minUsage" {
+		} else if stringEquals(policy, "minUsage") {
 			minUsage := int64(1e18)
 			for _, cont := range ContainerIdleList {
 				if cont.App.MemRunningGain < minUsage {
@@ -66,21 +71,23 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 					container = cont
 				}
 			}
-		} else if policy == "maxColdStartRate" {
-			maxColdStart := 0
+		} else if stringEquals(policy, "maxColdStartRate") {
+			maxColdStart := float64(0.0)
 			for _, cont := range ContainerIdleList {
-				if s.appWarmStartCnt[cont.App.AppID]/s.appRequestCnt[cont.App.AppID] > maxColdStart {
-					maxColdStart = s.appWarmStartCnt[cont.App.AppID]
+				if float64(s.appWarmStartCnt[cont.App.AppID])/float64(s.appRequestCnt[cont.App.AppID]) >= maxColdStart {
+					maxColdStart = float64(s.appWarmStartCnt[cont.App.AppID]) / float64(s.appRequestCnt[cont.App.AppID])
 					container = cont
 				}
 			}
 		} else {
-			panic("Invalid policy!")
+			fmt.Println("policy: ", policy)
+			panic("Invalid policy! " + policy)
 		}
 		if !ContainerIdleMap[container] {
-			panic("impossible")
+			panic("impossible " + policy)
 		}
 		ContainerIdleMap[container] = false
+		RemoveIdleContainer(container)
 		EvictedMemory += int64(container.App.MEMResources)
 		container.App.FinishTime = e.getTimestamp()
 		s.handleAppFinishEvent(&AppFinishEvent{ // 即刻执行
@@ -95,10 +102,12 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 }
 
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
+
 	if ContainerIdleMap[e.container] {
 		ContainerIdleMap[e.container] = false
 		RemoveIdleContainer(e.container)
 	}
+
 	AppFuncMap[e.app.AppID][e.function.FuncID] += 1
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 1 {
 		s.totalMemRunning += int64(MemoryFuncMap[e.function.AppID])

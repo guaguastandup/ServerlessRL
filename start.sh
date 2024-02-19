@@ -41,34 +41,34 @@ cd pkg/system && go build
 # ./system 120 0 3000 50 1 50 0.05 0.10 0.95 > ../output/$file.log &
 
 # file="5-0-2000-100-histogram"
-# ./system 120 0 2000 50 1 50 0.05 0.10 0.95 > ../output/$file.log
+# ./system 120 0 2000 50 1 50 0.05 0.10 0.95 > ../output/$file.log &
 
 # file="5-0-1500-100-histogram"
-# ./system 120 0 1500 50 1 50 0.05 0.10 0.95 > ../output/$file.log
+# ./system 120 0 1500 50 1 50 0.05 0.10 0.95 > ../output/$file.log &
 
 # file="5-0-1000-100-histogram"
-# ./system 120 0 1000 50 1 50 0.05 0.10 0.95 > ../output/$file.log
+# ./system 120 0 1000 50 1 50 0.05 0.10 0.95 > ../output/$file.log &
 
 # file="5-0-800-100-histogram"
-# ./system 120 0 800 50 1 50 0.05 0.10 0.95 > ../output/$file.log
+# ./system 120 0 800 50 1 50 0.05 0.10 0.95 > ../output/$file.log &
 
 file="5-0-1500-100-random"
-./system 120 0 1500 50 1 50 0.05 0.10 0.95 'random' > ../output/$file.log
+./system 120 0 1500 50 1 50 0.05 0.10 0.95 random > ../output/$file.log &
 
 file="5-0-1500-100-maxmem"
-./system 120 0 1500 50 1 50 0.05 0.10 0.95 'maxmem' > ../output/$file.log
+./system 120 0 1500 50 1 50 0.05 0.10 0.95 maxmem > ../output/$file.log &
 
 file="5-0-1500-100-maxKeepAlive"
-./system 120 0 1500 50 1 50 0.05 0.10 0.95 'maxKeepAlive' > ../output/$file.log
+./system 120 0 1500 50 1 50 0.05 0.10 0.95 maxKeepAlive > ../output/$file.log &
 
 file="5-0-1500-100-minUsage"
-./system 120 0 1500 50 1 50 0.05 0.10 0.95 'minUsage' > ../output/$file.log
+./system 120 0 1500 50 1 50 0.05 0.10 0.95 minUsage > ../output/$file.log &
 
 file="5-0-1500-100-maxColdStartRate"
-./system 120 0 1500 50 1 50 0.05 0.10 0.95 'minUsage' > ../output/$file.log
+./system 120 0 1500 50 1 50 0.05 0.10 0.95 maxColdStartRate > ../output/$file.log &
 
 file="5-0-1500-100-fixed-lru" 
-./system 120 0 1500 50 1 50 0 0 0 0 'lru' > ../output/$file.log
+./system 120 0 1500 50 1 50 0 0 0 lru > ../output/$file.log &
 
 # 确认当上面所有程序结束后, 再执行以下命令, 该怎么确认？
 wait ${pids[@]}

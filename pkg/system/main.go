@@ -152,6 +152,7 @@ func main() {
 	fmt.Printf("leftBound: %.2f\n", leftBound)
 	fmt.Printf("leftBound2: %.2f\n", leftBound2)
 	fmt.Printf("rightBound: %.2f\n", rightBound)
+	fmt.Printf("policy: %v\n", policy)
 
 	Server := &Server{
 		MEMCapacity:     int64(defaultMemoryCapcity),

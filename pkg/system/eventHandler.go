@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
+	"math/rand"
 )
 
 var AppFuncMap map[string]map[string]int = make(map[string]map[string]int)  // appID -> functionID -> start time
@@ -28,12 +29,54 @@ var appHistogram map[string]*histogram = make(map[string]*histogram)
 
 func (s *Server) handleEvictEvent(e *baseEvent) {
 	for s.totalMemUsing > s.MEMCapacity {
-		// 删除第一个空闲的容器
 		if len(ContainerIdleList) == 0 {
 			panic("No idle container to evict!")
 		}
-		container := ContainerIdleList[0]
-		ContainerIdleList = ContainerIdleList[1:]
+		var container *Container
+		// 删除第一个空闲的容器
+		if policy == "lru" {
+			container = ContainerIdleList[0]
+			ContainerIdleList = ContainerIdleList[1:]
+		} else if policy == "random" {
+			index := rand.Intn(len(ContainerIdleList))
+			container = ContainerIdleList[index]
+			RemoveIdleContainer(container)
+		} else if policy == "maxmem" {
+			maxMem := 0
+			for _, cont := range ContainerIdleList {
+				if cont.App.MEMResources > maxMem {
+					maxMem = cont.App.MEMResources
+					container = cont
+				}
+			}
+			RemoveIdleContainer(container)
+		} else if policy == "maxKeepAlive" {
+			maxKeepAlive := 0
+			for _, cont := range ContainerIdleList {
+				if cont.App.KeepAliveTime > maxKeepAlive {
+					maxKeepAlive = cont.App.KeepAliveTime
+					container = cont
+				}
+			}
+		} else if policy == "minUsage" {
+			minUsage := int64(1e18)
+			for _, cont := range ContainerIdleList {
+				if cont.App.MemRunningGain < minUsage {
+					minUsage = cont.App.MemRunningGain
+					container = cont
+				}
+			}
+		} else if policy == "maxColdStartRate" {
+			maxColdStart := 0
+			for _, cont := range ContainerIdleList {
+				if s.appWarmStartCnt[cont.App.AppID]/s.appRequestCnt[cont.App.AppID] > maxColdStart {
+					maxColdStart = s.appWarmStartCnt[cont.App.AppID]
+					container = cont
+				}
+			}
+		} else {
+			panic("Invalid policy!")
+		}
 		if !ContainerIdleMap[container] {
 			panic("impossible")
 		}

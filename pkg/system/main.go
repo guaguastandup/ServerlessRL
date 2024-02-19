@@ -22,6 +22,8 @@ var leftBound float64 = 0.05
 var leftBound2 float64 = 0.1
 var rightBound float64 = 0.95
 
+var policy string = "lru"
+
 type Container struct {
 	ID               int
 	App              *Application
@@ -138,6 +140,8 @@ func main() {
 	leftBound2 = num
 	num, _ = strconv.ParseFloat(os.Args[9], 64)
 	rightBound = num
+
+	policy = os.Args[10]
 
 	fmt.Printf("default KeepAliveTime: %d\n", defaultKeepAliveTime)
 	fmt.Printf("default PreWarmTime: %d\n", defaultPreWarmTime)

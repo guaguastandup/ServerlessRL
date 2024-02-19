@@ -13,25 +13,12 @@ app_mem_score = {}
 app_time_score = {}
 
 logPath = [
-    # '1min-0.1min',
-    # '1min-1min',
-    # '3min-0min',
-    # '3min-1min',
-    # '5min-0min',
-    # '5min-1min',
-    # '10min-0min',
-    # '15min-0min',
-    # '30min-0min',
-    # '60min-0min',
-    # '120min-0min',
-    # '1140min-0min',
-    # '120min-0min-1000GB',
-    # '120min-0min-5000GB',
-    '5min-0min-300GB',
-    '5min-0min-400GB',
-    '5min-0min-500GB',
-    # '5min-0min-1000GB',
-    # '5min-0min-1500GB',
+    'fixed-5-0m-3000G',
+    'fixed-5-0.1m-3000G',
+    'fixed-5-0.5m-3000G',
+    '5-0m-3000G-0',
+    '5-0m-3000G-1',
+    '5-0m-3000G-2',
 ]
 
 for i in range(len(logPath)):

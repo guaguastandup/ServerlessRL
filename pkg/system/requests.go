@@ -222,7 +222,7 @@ func ParseRequests(day int, minute int) []*Request {
 				FuncID:       functionID,
 				FuncType:     FunctionTypeMap[functionType],
 				ArrivalTime:  int64(1140*day*Minute + 60*1000*minute + rand.Intn(60*1000)),
-				RunTime:      int(float64(DurationMap[appID][functionID]) * (0.5 + float64(rand.Intn(100))/100.0)),
+				RunTime:      int(float64(DurationMap[appID][functionID]) * (0.85 + float64(rand.Intn(100))/100.0)),
 				LoadTime:     int(float64(ColdStartTimeMap[appID]) * 3.0),
 				MEMResources: float64(MemoryMap[appID]),
 			}

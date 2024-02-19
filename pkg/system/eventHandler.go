@@ -17,6 +17,8 @@ var ContainerIdleMap map[*Container]bool = make(map[*Container]bool) // 一开�
 
 var EvictedMemory int64 = 0
 
+var preTime map[string]int64 = make(map[string]int64)
+
 type histogram struct {
 	sum   int
 	array []int
@@ -98,8 +100,8 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 		}
 	}
 	prewarmWindow, keepAliveWindow := getWindow(e.app)
-	e.app.KeepAliveTime = keepAliveWindow * 60 * 1000
-	e.app.PreWarmTime = prewarmWindow * 60 * 1000
+	e.app.KeepAliveTime = keepAliveWindow
+	e.app.PreWarmTime = prewarmWindow
 	if prewarmWindow == 0 { // 使用KeepAlive的策略
 		//! functionFinish -> appTryFinish
 		if e.getTimestamp()+int64(e.app.KeepAliveTime) > e.app.FinishTime { // 产生了新的结束时间
@@ -116,15 +118,14 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 	} else {
 		e.app.FinishTime = e.getTimestamp() // 立刻删除
 		//! functionFinish -> appFinish
-		s.addEvent(&AppFinishEvent{
+		s.handleAppFinishEvent(&AppFinishEvent{
 			baseEvent: baseEvent{
 				id:        s.newEventId(),
-				timestamp: e.getTimestamp() + int64(e.app.PreWarmTime) + int64(e.app.KeepAliveTime),
+				timestamp: e.getTimestamp(),
 			},
 			app:       e.app,
 			container: e.container,
 		})
-
 	}
 }
 
@@ -232,16 +233,24 @@ func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 		ParseDuration(e.day)
 	}
 	requests := ParseRequests(e.day, e.minute)
-	preTime := int64(0)
 	//! batchFunctionSubmit -> functionSubmit
 	for _, req := range requests {
-		if preTime != 0 {
-			interval := float64(req.ArrivalTime - preTime)
-			// 向上取整
+		if appHistogram[req.AppID] == nil {
+			appHistogram[req.AppID] = &histogram{
+				sum:   0,
+				array: make([]int, 130),
+			}
+		}
+		if preTime[req.AppID] != 0 {
+			interval := float64(req.ArrivalTime - preTime[req.AppID])
 			interval_min := int(math.Ceil(interval / (1000 * 60)))
+			if interval_min > 120 {
+				interval_min = 119
+			}
 			appHistogram[req.AppID].sum += 1
 			appHistogram[req.AppID].array[interval_min] += 1
 		}
+		preTime[req.AppID] = req.ArrivalTime
 		s.addEvent(&FunctionSubmitEvent{
 			baseEvent: baseEvent{
 				id:        s.newEventId(),
@@ -323,23 +332,32 @@ func RemoveIdleContainer(cont *Container) {
 }
 
 func getWindow(app *Application) (int, int) {
+	// return defaultPreWarmTime, defaultKeepAliveTime
+	if appHistogram[app.AppID].sum <= 500 {
+		return 0, defaultKeepAliveTime
+	}
 	prewarmWindow, keepAliveWindow := 0, 0
 	sum1, sum2 := 0, 0
-	for i := 0; i < 360; i++ {
+	for i := 0; i < 120; i++ {
 		if prewarmWindow != 0 {
 			sum1 += appHistogram[app.AppID].array[i]
 		}
 		sum2 += appHistogram[app.AppID].array[i]
 		if float64(sum1) >= 0.05*float64(appHistogram[app.AppID].sum) {
 			prewarmWindow = i
-			if float64(sum1) >= 0.1*float64(appHistogram[app.AppID].sum) {
+			if float64(sum1) >= 0.10*float64(appHistogram[app.AppID].sum) {
 				prewarmWindow = 0
 			}
 		}
-		if float64(sum2) >= 0.9*float64(appHistogram[app.AppID].sum) {
+		if float64(sum2) >= 0.95*float64(appHistogram[app.AppID].sum) {
 			keepAliveWindow = i
 			break
 		}
 	}
-	return prewarmWindow, keepAliveWindow
+	return prewarmWindow * 60 * 1000, keepAliveWindow * 60 * 1000
 }
+
+// 0110101010100001000010101
+// 0010101010001111001011111
+// 0101111111011101011101011
+// 1011011110101011110101111

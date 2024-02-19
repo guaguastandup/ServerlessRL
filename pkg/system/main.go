@@ -129,7 +129,7 @@ func main() {
 		appRequestCnt:   make(map[string]int),
 	}
 	for day := 1; day <= 1; day++ {
-		for i := 0; i < 500; i++ {
+		for i := 0; i < 1140; i++ {
 			Server.addEvent(&BatchFunctionSubmitEvent{
 				baseEvent: baseEvent{
 					id:        Server.newEventId(),
@@ -138,17 +138,19 @@ func main() {
 				day:    day,
 				minute: i + 1,
 			})
+			if day == 1 && i == 1139 {
+				for k, v := range AppMemUsage {
+					fmt.Printf("app mem socre: %.5f\n", 100.0*float64(AppRunningMemUsage[k])/float64(v))
+				}
+				for k, v := range AppTimeUsage {
+					fmt.Printf("app time socre: %.5f\n", 100.0*float64(AppRunningTimeUsage[k])/float64(v))
+				}
+			}
 		}
 	}
 	Server.Run()
 	for k, v := range Server.appRequestCnt {
 		fmt.Println("warmstart rate: ", float64(Server.appWarmStartCnt[k])/float64(v))
-	}
-	for k, v := range AppMemUsage {
-		fmt.Printf("app mem socre: %.5f\n", 100.0*float64(AppRunningMemUsage[k])/float64(v))
-	}
-	for k, v := range AppTimeUsage {
-		fmt.Printf("app time socre: %.5f\n", 100.0*float64(AppRunningTimeUsage[k])/float64(v))
 	}
 }
 

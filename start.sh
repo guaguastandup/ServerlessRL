@@ -1,14 +1,50 @@
-# 如果有第四个参数, 则使用
-# $1: 开始时间
-# $2: 结束时间
-# $3: 内存大小
-# $4: 文件名
-# 否则使用
-if [ ! -n "$4" ]; then
-    file=$1-$2m-$3G
-else
-    file=$1-$2m-$3G-$4
-fi
-cd pkg/system && go build && ./system $1 $2 $3 > ../output/$file.log 
-# cd ../.. && python3 draw.py $file
+# defaultKeepAliveTime  单位min
+# defaultPreWarmTime    单位min
+# defaultMemoryCapcity  单位GB
+# ArricalCnt
+# IsFixed 0/1
+# SumLimit 
+# leftBound
+# leftBound2
+# rightBound
+
+cd pkg/system && go build
+
+file="5-0-3000-100-fixed"
+./system 5 0 3000 100 1 0 0 0 0 > ../output/$file.log &
+
+file="10-0-3000-100-fixed"
+./system 10 0 3000 100 1 0 0 0 0 > ../output/$file.log &
+
+file="15-0-3000-100-fixed"
+./system 15 0 3000 100 1 0 0 0 0 > ../output/$file.log &
+
+file="30-0-3000-100-fixed"
+./system 30 0 3000 100 1 0 0 0 0 > ../output/$file.log &
+
+file="60-0-3000-100-fixed"
+./system 60 0 3000 100 1 0 0 0 0 > ../output/$file.log &
+
+file="120-0-3000-100-fixed"
+./system 120 0 3000 100 1 0 0 0 0 > ../output/$file.log &
+
+file="5-0-3000-100-histogram"
+./system 120 0 3000 100 1 50 0.05 0.10 0.95 > ../output/$file.log &
+
+file="5-0-2000-100-histogram"
+./system 120 0 2000 100 1 50 0.05 0.10 0.95 > ../output/$file.log &
+
+file="5-0-1500-100-histogram"
+./system 120 0 1500 100 1 50 0.05 0.10 0.95 > ../output/$file.log &
+
+file="5-0-1000-100-histogram"
+./system 120 0 1000 100 1 50 0.05 0.10 0.95 > ../output/$file.log &
+
+file="5-0-800-100-histogram"
+./system 120 0 800 100 1 50 0.05 0.10 0.95 > ../output/$file.log &
+
+# 确认当上面所有程序结束后, 再执行以下命令, 该怎么确认？
+wait
+
+# 所有后台进程完成后执行的命令
 cd ../.. && ./draw.sh

@@ -13,12 +13,17 @@ app_mem_score = {}
 app_time_score = {}
 
 logPath = [
-    'fixed-5-0m-3000G',
-    'fixed-5-0.1m-3000G',
-    'fixed-5-0.5m-3000G',
-    '5-0m-3000G-0',
-    '5-0m-3000G-1',
-    '5-0m-3000G-2',
+    '5-0-3000-100-histogram',
+    "5-0-2000-100-histogram",
+    "5-0-1500-100-histogram",
+    "5-0-1000-100-histogram",
+    "5-0-800-100-histogram",
+    '5-0-3000-100-fixed',
+    '10-0-3000-100-fixed',
+    '15-0-3000-100-fixed',
+    '30-0-3000-100-fixed',
+    '60-0-3000-100-fixed',
+    '120-0-3000-100-fixed',
 ]
 
 for i in range(len(logPath)):

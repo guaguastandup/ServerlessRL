@@ -12,11 +12,15 @@ import (
 var Second int = 1000 // ms
 var Minute int = 60 * Second
 
-// var defaultKeepAliveTime int = 1 * Second
-var defaultKeepAliveTime int = 1
+var defaultKeepAliveTime int = 5 * Minute
 var defaultPreWarmTime int = 1 * Minute
-
 var defaultMemoryCapcity int = 1024 * 1024 // 1TB
+var ArricalCnt int = 5
+var IsFixed int = 0
+var SumLimit int = 50
+var leftBound float64 = 0.05
+var leftBound2 float64 = 0.1
+var rightBound float64 = 0.95
 
 type Container struct {
 	ID               int
@@ -75,6 +79,14 @@ func (s *Server) Run() {
 			fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
 			startTime = time.Now()
 			cnt = 0
+			if e.(*BatchFunctionSubmitEvent).minute == 1140 {
+				for k, v := range AppMemUsage {
+					fmt.Printf("app mem socre: %.5f\n", 100.0*float64(AppRunningMemUsage[k])/float64(v))
+				}
+				for k, v := range AppTimeUsage {
+					fmt.Printf("app time socre: %.5f\n", 100.0*float64(AppRunningTimeUsage[k])/float64(v))
+				}
+			}
 		}
 		s.handleEvent(e)
 	}
@@ -108,20 +120,35 @@ func (s *Server) handleEvent(e event) {
 }
 
 func main() {
-	if len(os.Args) > 1 {
-		num, _ := strconv.ParseFloat(os.Args[1], 64)
-		defaultKeepAliveTime = int(num * float64(Minute))
-	}
-	if len(os.Args) > 2 {
-		num, _ := strconv.ParseFloat(os.Args[2], 64)
-		defaultPreWarmTime = int(num * float64(Minute))
-	}
-	if len(os.Args) > 3 {
-		num, _ := strconv.ParseFloat(os.Args[3], 64)
-		defaultMemoryCapcity = int(num * 1024) // num GB
-	}
-	fmt.Println("default KeepAliveTime: ", defaultKeepAliveTime)
-	fmt.Println("dufault PreWarmTime: ", defaultPreWarmTime)
+	num, _ := strconv.ParseFloat(os.Args[1], 64)
+	defaultKeepAliveTime = int(num * float64(Minute))
+	num, _ = strconv.ParseFloat(os.Args[2], 64)
+	defaultPreWarmTime = int(num * float64(Minute))
+	num, _ = strconv.ParseFloat(os.Args[3], 64)
+	defaultMemoryCapcity = int(num * 1024) // num GB
+	num, _ = strconv.ParseFloat(os.Args[4], 64)
+	ArricalCnt = int(num)
+	num, _ = strconv.ParseFloat(os.Args[5], 64)
+	IsFixed = int(num)
+	num, _ = strconv.ParseFloat(os.Args[6], 64)
+	SumLimit = int(num)
+	num, _ = strconv.ParseFloat(os.Args[7], 64)
+	leftBound = num
+	num, _ = strconv.ParseFloat(os.Args[8], 64)
+	leftBound2 = num
+	num, _ = strconv.ParseFloat(os.Args[9], 64)
+	rightBound = num
+
+	fmt.Printf("default KeepAliveTime: %d\n", defaultKeepAliveTime)
+	fmt.Printf("default PreWarmTime: %d\n", defaultPreWarmTime)
+	fmt.Printf("default MemoryCapcity: %d\n", defaultMemoryCapcity)
+	fmt.Printf("ArricalCnt: %d\n", ArricalCnt)
+	fmt.Printf("IsFixed: %d\n", IsFixed)
+	fmt.Printf("SumLimit: %d\n", SumLimit)
+	fmt.Printf("leftBound: %.2f\n", leftBound)
+	fmt.Printf("leftBound2: %.2f\n", leftBound2)
+	fmt.Printf("rightBound: %.2f\n", rightBound)
+
 	Server := &Server{
 		MEMCapacity:     int64(defaultMemoryCapcity),
 		AppContainerMap: make(map[string]*Container),
@@ -138,14 +165,6 @@ func main() {
 				day:    day,
 				minute: i + 1,
 			})
-			if day == 1 && i == 1139 {
-				for k, v := range AppMemUsage {
-					fmt.Printf("app mem socre: %.5f\n", 100.0*float64(AppRunningMemUsage[k])/float64(v))
-				}
-				for k, v := range AppTimeUsage {
-					fmt.Printf("app time socre: %.5f\n", 100.0*float64(AppRunningTimeUsage[k])/float64(v))
-				}
-			}
 		}
 	}
 	Server.Run()

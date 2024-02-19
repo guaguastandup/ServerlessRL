@@ -212,8 +212,8 @@ func ParseRequests(day int, minute int) []*Request {
 		if MemoryMap[appID] == 0 || DurationMap[appID][functionID] == 0 {
 			continue
 		}
-		if arrivalCnt > 5 {
-			arrivalCnt = 5
+		if arrivalCnt > float64(ArricalCnt) {
+			arrivalCnt = float64(ArricalCnt)
 		}
 		for j := 0; j < int(arrivalCnt); j++ {
 			request := Request{

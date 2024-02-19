@@ -187,6 +187,12 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 	if e.app == nil || e.app.FunctionCnt != 0 || e.app.FinishTime != e.getTimestamp() {
 		return
 	}
+
+	if ContainerIdleMap[e.container] {
+		ContainerIdleMap[e.container] = false
+		RemoveIdleContainer(e.container)
+	}
+
 	s.TimeRunningUsage += e.app.RunningGain
 	s.MEMRunningUsage += e.app.MemRunningGain
 
@@ -332,9 +338,11 @@ func RemoveIdleContainer(cont *Container) {
 }
 
 func getWindow(app *Application) (int, int) {
-	// return defaultPreWarmTime, defaultKeepAliveTime
-	if appHistogram[app.AppID].sum <= 500 {
-		return 0, defaultKeepAliveTime
+	if IsFixed > 0 {
+		return defaultPreWarmTime, defaultKeepAliveTime
+	}
+	if appHistogram[app.AppID].sum <= SumLimit {
+		return defaultPreWarmTime, defaultKeepAliveTime
 	}
 	prewarmWindow, keepAliveWindow := 0, 0
 	sum1, sum2 := 0, 0
@@ -343,13 +351,13 @@ func getWindow(app *Application) (int, int) {
 			sum1 += appHistogram[app.AppID].array[i]
 		}
 		sum2 += appHistogram[app.AppID].array[i]
-		if float64(sum1) >= 0.05*float64(appHistogram[app.AppID].sum) {
+		if float64(sum1) >= leftBound*float64(appHistogram[app.AppID].sum) {
 			prewarmWindow = i
-			if float64(sum1) >= 0.10*float64(appHistogram[app.AppID].sum) {
+			if float64(sum1) >= leftBound2*float64(appHistogram[app.AppID].sum) {
 				prewarmWindow = 0
 			}
 		}
-		if float64(sum2) >= 0.95*float64(appHistogram[app.AppID].sum) {
+		if float64(sum2) >= rightBound*float64(appHistogram[app.AppID].sum) {
 			keepAliveWindow = i
 			break
 		}

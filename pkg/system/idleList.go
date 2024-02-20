@@ -22,12 +22,13 @@ func RemoveIdleContainer(container *Container) {
 	}
 }
 
-func AddToIdleList(container *Container) {
+func (s *Server) AddToIdleList(container *Container) {
 	if ContainerIdleMap[container.ID] != nil {
 		panic("add an exist element")
 	}
 	ele := ContainerIdleList.PushBack(container)
 	ContainerIdleMap[container.ID] = ele
+	container.App.Score = s.getScore(container.App.AppID)
 	h.Push(container)
 }
 

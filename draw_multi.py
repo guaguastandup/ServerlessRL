@@ -13,10 +13,10 @@ app_mem_score = {}
 app_time_score = {}
 
 logPath = [
-    "5-0-600-100-maxmem",
-    "5-0-1000-100-histogram",
-    "5-0-1500-100-histogram",
-    "5-0-2000-100-histogram",
+    # "5-0-600-100-maxmem",
+    # "5-0-1000-100-histogram",
+    # "5-0-1500-100-histogram",
+    # "5-0-2000-100-histogram",
     # '5-0-3000-50-histogram',
     
     # '5-0-3000-50-fixed',
@@ -26,14 +26,18 @@ logPath = [
     # '60-0-3000-50-fixed',
     # '120-0-3000-50-fixed',
     
-    "30-0-1500-100-fixed-maxmem",
-    "30-0-1500-100-fixed-random",
+    # "30-0-1500-100-fixed-maxmem",
+    # "30-0-1500-100-fixed-random",
     
-    "5-0-1500-100-random",
-    "5-0-1500-100-maxmem",
-    "5-0-1500-100-maxKeepAlive",
-    "5-0-1500-100-minUsage",
-    "5-0-1500-100-maxColdStartRate",
+    # "5-0-1500-100-random",
+    # "5-0-1500-100-maxmem",
+    # "5-0-1500-100-maxKeepAlive",
+    # "5-0-1500-100-minUsage",
+    # "5-0-1500-100-maxColdStartRate",
+    
+    # 'histogram-lru-5-0-1500-50',
+    # 'try2',
+    # 'try3',
 ]
 
 for i in range(len(logPath)):

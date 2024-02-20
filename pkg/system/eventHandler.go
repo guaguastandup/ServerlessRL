@@ -1,7 +1,5 @@
 package main
 
-import "container/heap"
-
 var AppFuncMap map[string]map[string]int = make(map[string]map[string]int)  // appID -> functionID -> start time
 var AppLeft map[string]map[string]int64 = make(map[string]map[string]int64) // appID -> left time
 var AppMemUsage map[string]int64 = make(map[string]int64)                   // appID -> mem usage
@@ -10,9 +8,11 @@ var AppTimeUsage map[string]int64 = make(map[string]int64)                  // a
 var AppRunningTimeUsage map[string]int64 = make(map[string]int64)           // appID -> running time usage
 
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
+
 	if IsExistInIdleList(e.container) {
 		RemoveIdleContainer(e.container)
 	}
+
 	AppFuncMap[e.app.AppID][e.function.FuncID] += 1
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 1 {
 		s.totalMemRunning += int64(MemoryFuncMap[e.function.AppID])
@@ -23,7 +23,12 @@ func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 	if e.app.FunctionCnt > 0 && e.app.Left == -1 {
 		e.app.Left = e.getTimestamp()
 	}
-	//! functionStart -> functionFinish
+
+	if e.app.FinishTime <= e.getTimestamp()+int64(e.function.RunTime) { // 为了避免函数没有执行结束, App就被销毁的情况
+		e.app.FinishTime = e.getTimestamp() + int64(e.function.RunTime) + 1
+	}
+
+	//! Function Start -> Function Finish
 	s.addEvent(&FunctionFinishEvent{
 		baseEvent: baseEvent{
 			id:        s.newEventId(),
@@ -33,12 +38,14 @@ func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 		app:       e.app,
 		container: e.container,
 	})
+
 }
 
 func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 	e.app.FunctionCnt -= 1
 	AppFuncMap[e.app.AppID][e.function.FuncID] -= 1
 	e.app.LastIdleTime = e.getTimestamp() // 记录App最后一次空闲时间
+
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 0 {
 		s.totalMemRunning -= int64(MemoryFuncMap[e.function.AppID])
 	}
@@ -50,12 +57,18 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 		e.app.RunningGain += (e.getTimestamp() - e.app.Left)
 		e.app.Left = -1
 	}
-	if e.app.FunctionCnt == 0 {
-		AddToIdleList(e.container)
+
+	if e.container == nil {
+		panic("container is nil")
 	}
+	if e.app.FunctionCnt == 0 && !IsExistInIdleList(e.container) {
+		s.AddToIdleList(e.container)
+	}
+
 	prewarmWindow, keepAliveWindow := getWindow(e.app)
 	e.app.KeepAliveTime = keepAliveWindow
 	e.app.PreWarmTime = prewarmWindow
+
 	if prewarmWindow == 0 { // 使用KeepAlive的策略
 		//! functionFinish -> appFinish
 		if e.getTimestamp()+int64(e.app.KeepAliveTime) > e.app.FinishTime { // 产生了新的结束时间
@@ -102,7 +115,9 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 		AppLeft[e.app.AppID] = make(map[string]int64)
 	}
 
-	AddToIdleList(s.AppContainerMap[e.app.AppID])
+	if !IsExistInIdleList(s.AppContainerMap[e.app.AppID]) {
+		s.AddToIdleList(s.AppContainerMap[e.app.AppID])
+	}
 
 	if flag == 1 && e.function == nil { // 预热
 		e.app.FinishTime = e.getTimestamp() + int64(e.app.InitTime) + int64(e.app.KeepAliveTime)
@@ -166,7 +181,8 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 	s.TimeUsage += e.getTimestamp() - e.app.InitTimeStamp
 	s.totalMemUsing -= int64(e.app.MEMResources)
 
-	s.AppContainerMap[e.app.AppID] = nil
+	delete(s.AppContainerMap, e.app.AppID)
+
 	if e.app.PreWarmTime > 0 {
 		s.addEvent(&AppInitEvent{
 			baseEvent: baseEvent{
@@ -203,27 +219,35 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 	if s.AppContainerMap[appID] != nil { // warm start
 		container := s.AppContainerMap[appID]
 		startTime := e.getTimestamp()
-		if container.App.InitDoneTimeStamp < e.getTimestamp() { // 说明容器已经初始化完成
+		if container.App.InitDoneTimeStamp <= e.getTimestamp() { // 说明容器已经初始化完成
 			s.warmStartCnt++
 			s.appWarmStartCnt[appID] += 1
-			if policy == "maxColdStartRate" {
-				container.App.Score = s.getScore(appID)
-				heap.Fix(h, container.Index)
-			}
 		} else {
-			startTime = container.App.InitDoneTimeStamp
+			startTime = container.App.InitDoneTimeStamp + 1
 		}
 		container.App.FunctionCnt += 1
 		//! functionSubmit -> functionStart
-		s.addEvent(&FunctionStartEvent{
-			baseEvent: baseEvent{
-				id:        s.newEventId(),
-				timestamp: startTime,
-			},
-			app:       container.App,
-			container: container,
-			function:  e.function,
-		})
+		if startTime == e.getTimestamp() {
+			s.handleFuncStartEvent(&FunctionStartEvent{
+				baseEvent: baseEvent{
+					id:        s.newEventId(),
+					timestamp: startTime,
+				},
+				app:       container.App,
+				container: container,
+				function:  e.function,
+			})
+		} else {
+			s.addEvent(&FunctionStartEvent{
+				baseEvent: baseEvent{
+					id:        s.newEventId(),
+					timestamp: startTime,
+				},
+				app:       container.App,
+				container: container,
+				function:  e.function,
+			})
+		}
 	} else { // cold start
 		//! functionSubmit -> appInit
 		s.handleAppInitEvent(&AppInitEvent{ // todo: 此处需要考虑delayed hits的问题

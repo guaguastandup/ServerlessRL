@@ -10,48 +10,54 @@
 
 cleanup() {
     echo "Caught SIGINT signal, terminating the background processes..."
-    # 杀死所有属于当前脚本进程组的后台进程
     pkill -P $$
 }
-
 trap cleanup SIGINT
 
+keepAliveList=(5 120)
+# policyList=('random' 'lru' 'maxmem' 'maxKeepAlive' 'minUsage' 'maxColdStartRate')
+policyList=('random' 'lru' 'maxmem')
+memoryList=(1000 1500 2000)
 
 cd pkg/system && go build
 
-for keepAlive in 5 10 15 30 60 120
+for keepAlive in "${keepAliveList[@]}"
 do
-    for policy in 'random' 'maxmem' 'maxKeepAlive' 'minUsage' 'maxColdStartRate' 'lru'
+    for policy in "${policyList[@]}"
     do 
-        fixed=1
-        memory=3000
-        arrivalCnt=50
-        prewarm=0
-        policy='lru'
-        file="fixed-$policy-$i-$prewarm-$memory-$arrivalCnt"
-        ./system $keepAlive $prewarm $memory $arrivalCnt $fixed 0 0 0 0 $policy > ../output/$file.log &
+        for memory in "${memoryList[@]}"
+        do 
+            fixed=1
+            arrivalCnt=50
+            prewarm=0
+            file="fixed-$policy-$keepAlive-$prewarm-$memory-$arrivalCnt"
+            echo $file
+            ./system $keepAlive $prewarm $memory $arrivalCnt $fixed 0 0 0 0 $policy > ../output/$file.log &
+        done
     done
 done
 
-for keepAlive in 5 10 15 30 60 120
-do
-    for policy in 'random' 'maxmem' 'maxKeepAlive' 'minUsage' 'maxColdStartRate' 'lru'
-    do 
-        fixed=0
-        memory=3000
-        arrivalCnt=50
-        prewarm=0
-        policy='lru'
-        file="fixed-$policy-$i-$prewarm-$memory-$arrivalCnt"
-        sum=50
-        leftBound=0.05
-        leftBound2=0.10
-        rightBound=0.95
-        ./system $keepAlive $prewarm $memory $arrivalCnt $fixed $sum $leftBound $leftBound2 $rightBound $policy > ../output/$file.log &
-    done
-done
+# for keepAlive in "${keepAliveList[@]}"
+# do
+#     for policy in "${policyList[@]}"
+#     do 
+#         for memory in "${memoryList[@]}"
+#         do 
+#             fixed=0
+#             arrivalCnt=50
+#             prewarm=0
+#             sum=50
+#             leftBound=0.05
+#             leftBound2=0.10
+#             rightBound=0.95
+#             file="fixed-$policy-$keepAlive-$prewarm-$memory-$arrivalCnt"
+#             echo $file
+#             ./system $keepAlive $prewarm $memory $arrivalCnt $fixed $sum $leftBound $leftBound2 $rightBound $policy > ../output/$file.log &
+#         done
+#     done
+# done
 
-wait ${pids[@]}
+wait
 
 # 所有后台进程完成后执行的命令
-cd ../.. && ./draw.sh
+# cd ../.. && ./draw.sh

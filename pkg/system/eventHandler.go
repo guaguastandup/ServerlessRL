@@ -13,17 +13,9 @@ var AppRunningMemUsage map[string]int64 = make(map[string]int64)            // a
 var AppTimeUsage map[string]int64 = make(map[string]int64)                  // appID -> time usage
 var AppRunningTimeUsage map[string]int64 = make(map[string]int64)           // appID -> running time usage
 
-var ContainerIdleList []*Container
-var ContainerIdleMap map[*Container]bool = make(map[*Container]bool) // 一开始全都是空闲的
-
 var EvictedMemory int64 = 0
 
 var preTime map[string]int64 = make(map[string]int64)
-
-type histogram struct {
-	sum   int
-	array []int
-}
 
 var appHistogram map[string]*histogram = make(map[string]*histogram)
 
@@ -37,16 +29,16 @@ func stringEquals(a, b string) bool {
 }
 func (s *Server) handleEvictEvent(e *baseEvent) {
 	for s.totalMemUsing > s.MEMCapacity {
-		if len(ContainerIdleList) == 0 {
+		if ContainerIdleList.Len() == 0 {
 			panic("No idle container to evict!")
 		}
 		var container *Container
 		// 删除第一个空闲的容器
 		if stringEquals(policy, "lru") {
-			container = ContainerIdleList[0]
+			container = FrontElement()
 		} else if stringEquals(policy, "random") {
-			index := rand.Intn(len(ContainerIdleList))
-			container = ContainerIdleList[index]
+			index := rand.Intn(ContainerIdleList.Len())
+			container = GetElementByIndex(index)
 		} else if stringEquals(policy, "maxmem") {
 			maxMem := 0
 			for _, cont := range ContainerIdleList {
@@ -299,14 +291,14 @@ func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 		if appHistogram[req.AppID] == nil {
 			appHistogram[req.AppID] = &histogram{
 				sum:   0,
-				array: make([]int, 130),
+				array: make([]int, histogramLength),
 			}
 		}
 		if preTime[req.AppID] != 0 {
 			interval := float64(req.ArrivalTime - preTime[req.AppID])
 			interval_min := int(math.Ceil(interval / (1000 * 60)))
-			if interval_min > 120 {
-				interval_min = 119
+			if interval_min >= histogramLength {
+				interval_min = histogramLength - 1
 			}
 			appHistogram[req.AppID].sum += 1
 			appHistogram[req.AppID].array[interval_min] += 1
@@ -390,33 +382,3 @@ func RemoveIdleContainer(cont *Container) {
 		}
 	}
 }
-
-func getWindow(app *Application) (int, int) {
-	if IsFixed > 0 {
-		return defaultPreWarmTime, defaultKeepAliveTime
-	}
-	if appHistogram[app.AppID].sum <= SumLimit {
-		return defaultPreWarmTime, defaultKeepAliveTime
-	}
-	prewarmWindow, keepAliveWindow := 0, 0
-	sum1, sum2 := 0, 0
-	for i := 0; i < 120; i++ {
-		if prewarmWindow != 0 {
-			sum1 += appHistogram[app.AppID].array[i]
-		}
-		sum2 += appHistogram[app.AppID].array[i]
-		if float64(sum1) >= leftBound*float64(appHistogram[app.AppID].sum) {
-			prewarmWindow = i
-			if float64(sum1) >= leftBound2*float64(appHistogram[app.AppID].sum) {
-				prewarmWindow = 0
-			}
-		}
-		if float64(sum2) >= rightBound*float64(appHistogram[app.AppID].sum) {
-			keepAliveWindow = i
-			break
-		}
-	}
-	return prewarmWindow * 60 * 1000, keepAliveWindow * 60 * 1000
-}
-
-// 0110101010100001000010101

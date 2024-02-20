@@ -19,64 +19,57 @@ trap cleanup SIGINT
 
 cd pkg/system && go build
 
-# file="5-0-3000-50-fixed"
+
+
+# ----------------------  fixed ------------------------------
+# interate
+# file="fixed-lru-5-0-3000-50"
 # ./system 5 0 3000 50 1 0 0 0 0 > ../output/$file.log &
 
-# file="10-0-3000-50-fixed"
+# file="fixed-lru-10-0-3000-50"
 # ./system 10 0 3000 50 1 0 0 0 0 > ../output/$file.log &
 
-# file="15-0-3000-50-fixed"
-# ./system 15 0 3000 50 1 0 0 0 0 > ../output/$file.log &
+# ------------------  fixed & policy ------------------------------
+# file="fixed-lru-5-0-3000-50"
+# ./system 5 0 3000 50 1 0 0 0 0 > ../output/$file.log &
 
-# file="30-0-3000-50-fixed"
-# ./system 30 0 3000 50 1 0 0 0 0 > ../output/$file.log &
+# file="fixed-lru-10-0-3000-50"
+# ./system 10 0 3000 50 1 0 0 0 0 > ../output/$file.log &
 
-# file="60-0-3000-50-fixed"
-# ./system 60 0 3000 50 1 0 0 0 0 > ../output/$file.log &
-
-# file="120-0-3000-50-fixed"
-# ./system 120 0 3000 50 1 0 0 0 0 > ../output/$file.log &
-
-# file="5-0-3000-50-histogram-lru"
+# ---------------------- histogram -----------------------------
+# file="histogram-none-5-0-3000"
 # ./system 5 0 3000 50 1 50 0.05 0.10 0.95 lru > ../output/$file.log &
 
-# file="5-0-2000-100-histogram-lru"
-# ./system 5 0 2000 50 1 50 0.05 0.10 0.95 lru > ../output/$file.log &
+# ------------------ histogram & policy-----------------------------
+file="5-0-600-50-maxmem"
+./system 5 0 600 50 1 50 0.05 0.10 0.95 maxmem > ../output/$file.log &
+file="5-0-800-50-maxmem"
+./system 5 0 800 50 1 50 0.05 0.10 0.95 maxmem > ../output/$file.log &
+file="5-0-1000-50-maxmem"
+./system 5 0 1000 50 1 50 0.05 0.10 0.95 maxmem > ../output/$file.log &
 
-# file="5-0-1500-100-histogram-lru"
-# ./system 5 0 1500 50 1 50 0.05 0.10 0.95 lru > ../output/$file.log &
-
-# file="5-0-1000-100-histogram-lru"
-# ./system 5 0 1000 50 1 50 0.05 0.10 0.95 lru > ../output/$file.log &
-
-# file="5-0-1500-100-histogram-lru"
-# ./system 5 0 1500 50 1 50 0.05 0.10 0.95 lru > ../output/$file.log &
-
-# file="5-0-600-100-maxmem"
-# ./system 5 0 600 50 1 50 0.05 0.10 0.95 maxmem > ../output/$file.log &
-
-# file="5-0-1500-100-random"
+# file="5-0-1500-50-random"
 # ./system 5 0 1500 50 1 50 0.05 0.10 0.95 random > ../output/$file.log &
 
-# file="5-0-1500-100-maxKeepAlive"
+# file="5-0-1500-50-maxKeepAlive"
 # ./system 5 0 1500 50 1 50 0.05 0.10 0.95 maxKeepAlive > ../output/$file.log &
 
-# file="5-0-1500-100-minUsage"
+# file="5-0-1500-50-minUsage"
 # ./system 5 0 1500 50 1 50 0.05 0.10 0.95 minUsage > ../output/$file.log &
 
-# file="5-0-1500-100-maxColdStartRate"
+# file="5-0-1500-50-maxColdStartRate"
 # ./system 5 0 1500 50 1 50 0.05 0.10 0.95 maxColdStartRate > ../output/$file.log &
 
-# file="5-0-1500-100-fixed-lru" 
+# file="5-0-1500-50-fixed-lru" 
 # ./system 5 0 1500 50 1 50 0 0 0 lru > ../output/$file.log &
 
-# file="5-0-1500-100-fixed-random" 
+# file="5-0-1500-50-fixed-random" 
 # ./system 5 0 1500 50 1 50 0 0 0 random > ../output/$file.log &
 
-# file="30-0-1500-100-fixed-random" 
+# file="30-0-1500-50-fixed-random" 
 # ./system 30 0 1500 50 1 50 0 0 0 lru > ../output/$file.log &
 
-# file="30-0-1500-100-fixed-maxmem" 
+# file="30-0-1500-50-fixed-maxmem" 
 # ./system 30 0 1500 50 1 50 0 0 0 maxmem > ../output/$file.log &
 
 # 确认当上面所有程序结束后, 再执行以下命令, 该怎么确认？

@@ -50,12 +50,6 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 		} else if stringEquals(policy, "maxmem") {
 			maxMem := 0
 			for _, cont := range ContainerIdleList {
-				if cont == nil {
-					panic("container is nil")
-				}
-				if cont.App == nil {
-					panic("app is nil")
-				}
 				if cont.App.MEMResources >= maxMem {
 					maxMem = cont.App.MEMResources
 					container = cont
@@ -86,7 +80,6 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 				}
 			}
 		} else {
-			fmt.Println("policy: ", policy)
 			panic("Invalid policy! " + policy)
 		}
 		if !ContainerIdleMap[container] {
@@ -109,9 +102,6 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 	if ContainerIdleMap[e.container] {
-		if e.container == nil {
-			panic("why why container is nil")
-		}
 		ContainerIdleMap[e.container] = false
 		RemoveIdleContainer(e.container)
 	}
@@ -155,9 +145,6 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 	if e.app.FunctionCnt == 0 {
 		if !ContainerIdleMap[e.container] {
 			ContainerIdleMap[e.container] = true
-			if e.container == nil {
-				panic("why container is nil")
-			}
 			ContainerIdleList = append(ContainerIdleList, e.container)
 		}
 	}
@@ -206,57 +193,14 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 		e.app.InitTimeStamp = e.getTimestamp()
 		e.app.InitDoneTimeStamp = e.getTimestamp() + int64(e.app.InitTime)
 		s.totalMemUsing += int64(e.app.MEMResources)
-		if s.AppContainerMap[e.app.AppID] == nil {
-			panic("got you here, " + e.app.AppID)
-		}
-		if ContainerIdleMap[s.AppContainerMap[e.app.AppID]] {
-			if flag == 1 {
-				panic("111whywhywhy init finish, container nil, and in idleMap and flag == 1" + e.app.AppID)
-			} else {
-				panic("111whywhywhy init finish, container nil, and in idleMap " + e.app.AppID)
-			}
-		}
 		if s.totalMemUsing > s.MEMCapacity { // Memory Overload
 			s.handleEvictEvent(&baseEvent{
 				id:        s.newEventId(),
 				timestamp: e.getTimestamp(),
 			})
 		}
-		if cont == nil {
-			panic("wow wait")
-		}
-		if s.AppContainerMap[e.app.AppID] == nil {
-			if ContainerIdleMap[s.AppContainerMap[e.app.AppID]] {
-				if flag == 1 {
-					panic("whywhywhy init finish, container nil, and in idleMap and flag == 1" + e.app.AppID)
-				} else {
-					panic("whywhywhy init finish, container nil, and in idleMap " + e.app.AppID)
-				}
-			} else {
-				if flag == 1 {
-					panic("whywhywhy init finish, container nil, and not in idleMap and flag == 1" + e.app.AppID)
-				} else {
-					panic("whywhywhy init finish, container nil, and not in idleMap " + e.app.AppID)
-				}
-			}
-		}
 		AppFuncMap[e.app.AppID] = make(map[string]int)
 		AppLeft[e.app.AppID] = make(map[string]int64)
-	}
-	if s.AppContainerMap[e.app.AppID] == nil {
-		if ContainerIdleMap[s.AppContainerMap[e.app.AppID]] {
-			if flag == 1 {
-				panic("init finish, container nil, and in idleMap and flag == 1" + e.app.AppID)
-			} else {
-				panic("init finish, container nil, and in idleMap " + e.app.AppID)
-			}
-		} else {
-			if flag == 1 {
-				panic("init finish, container nil, and not in idleMap and flag == 1" + e.app.AppID)
-			} else {
-				panic("init finish, container nil, and not in idleMap " + e.app.AppID)
-			}
-		}
 	}
 	if !ContainerIdleMap[s.AppContainerMap[e.app.AppID]] {
 		ContainerIdleMap[s.AppContainerMap[e.app.AppID]] = true
@@ -265,9 +209,6 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 
 	if flag == 1 && e.function == nil { // 预热
 		e.app.FinishTime = e.getTimestamp() + int64(e.app.InitTime) + int64(e.app.KeepAliveTime)
-		if s.AppContainerMap[e.app.AppID] == nil {
-			panic("func start1 : container is nil")
-		}
 		s.addEvent(&AppFinishEvent{
 			baseEvent: baseEvent{
 				id:        s.newEventId(),
@@ -283,9 +224,6 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 		startTime := e.getTimestamp()
 		if e.app.InitDoneTimeStamp > e.getTimestamp() {
 			startTime = e.app.InitDoneTimeStamp + 1
-		}
-		if s.AppContainerMap[e.app.AppID] == nil {
-			panic("func start2 : container is nil" + e.app.AppID)
 		}
 		//! appInit -> functionStart
 		s.addEvent(&FunctionStartEvent{

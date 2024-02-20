@@ -31,6 +31,7 @@ type Container struct {
 	MEMRunningUsage  int64 // 运行时的Usage
 	TimeUsage        int64 // 申请的Usage
 	TimeRunningUsage int64 // 运行时的Usage
+	Index            int
 }
 
 type Server struct { // Server-wide
@@ -58,6 +59,7 @@ type Server struct { // Server-wide
 }
 
 func (s *Server) Run() {
+	heap.Init(h) // 初始化堆
 	start := time.Now()
 	startTime := time.Now()
 	cnt := 0

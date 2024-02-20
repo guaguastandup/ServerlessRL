@@ -1,10 +1,6 @@
 package main
 
-import (
-	"fmt"
-	"math"
-	"math/rand"
-)
+import "container/heap"
 
 var AppFuncMap map[string]map[string]int = make(map[string]map[string]int)  // appID -> functionID -> start time
 var AppLeft map[string]map[string]int64 = make(map[string]map[string]int64) // appID -> left time
@@ -13,88 +9,8 @@ var AppRunningMemUsage map[string]int64 = make(map[string]int64)            // a
 var AppTimeUsage map[string]int64 = make(map[string]int64)                  // appID -> time usage
 var AppRunningTimeUsage map[string]int64 = make(map[string]int64)           // appID -> running time usage
 
-var EvictedMemory int64 = 0
-
-var preTime map[string]int64 = make(map[string]int64)
-
-var appHistogram map[string]*histogram = make(map[string]*histogram)
-
-func stringEquals(a, b string) bool {
-	for i := 0; i < len(b); i++ {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-func (s *Server) handleEvictEvent(e *baseEvent) {
-	for s.totalMemUsing > s.MEMCapacity {
-		if ContainerIdleList.Len() == 0 {
-			panic("No idle container to evict!")
-		}
-		var container *Container
-		// 删除第一个空闲的容器
-		if stringEquals(policy, "lru") {
-			container = FrontElement()
-		} else if stringEquals(policy, "random") {
-			index := rand.Intn(ContainerIdleList.Len())
-			container = GetElementByIndex(index)
-		} else if stringEquals(policy, "maxmem") {
-			maxMem := 0
-			for _, cont := range ContainerIdleList {
-				if cont.App.MEMResources >= maxMem {
-					maxMem = cont.App.MEMResources
-					container = cont
-				}
-			}
-		} else if stringEquals(policy, "maxKeepAlive") {
-			maxKeepAlive := 0
-			for _, cont := range ContainerIdleList {
-				if cont.App.KeepAliveTime > maxKeepAlive {
-					maxKeepAlive = cont.App.KeepAliveTime
-					container = cont
-				}
-			}
-		} else if stringEquals(policy, "minUsage") {
-			minUsage := int64(1e18)
-			for _, cont := range ContainerIdleList {
-				if cont.App.MemRunningGain < minUsage {
-					minUsage = cont.App.MemRunningGain
-					container = cont
-				}
-			}
-		} else if stringEquals(policy, "maxColdStartRate") {
-			maxColdStart := float64(0.0)
-			for _, cont := range ContainerIdleList {
-				if float64(s.appWarmStartCnt[cont.App.AppID])/float64(s.appRequestCnt[cont.App.AppID]) >= maxColdStart {
-					maxColdStart = float64(s.appWarmStartCnt[cont.App.AppID]) / float64(s.appRequestCnt[cont.App.AppID])
-					container = cont
-				}
-			}
-		} else {
-			panic("Invalid policy! " + policy)
-		}
-		if !ContainerIdleMap[container] {
-			panic("impossible " + policy)
-		}
-		ContainerIdleMap[container] = false
-		RemoveIdleContainer(container)
-		EvictedMemory += int64(container.App.MEMResources)
-		container.App.FinishTime = e.getTimestamp()
-		s.handleAppFinishEvent(&AppFinishEvent{ // 即刻执行
-			baseEvent: baseEvent{
-				id:        s.newEventId(),
-				timestamp: e.getTimestamp(),
-			},
-			app:       container.App,
-			container: container,
-		})
-	}
-}
-
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
-	if ContainerIdleMap[e.container] {
-		ContainerIdleMap[e.container] = false
+	if IsExistInIdleList(e.container) {
 		RemoveIdleContainer(e.container)
 	}
 	AppFuncMap[e.app.AppID][e.function.FuncID] += 1
@@ -135,16 +51,13 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 		e.app.Left = -1
 	}
 	if e.app.FunctionCnt == 0 {
-		if !ContainerIdleMap[e.container] {
-			ContainerIdleMap[e.container] = true
-			ContainerIdleList = append(ContainerIdleList, e.container)
-		}
+		AddToIdleList(e.container)
 	}
 	prewarmWindow, keepAliveWindow := getWindow(e.app)
 	e.app.KeepAliveTime = keepAliveWindow
 	e.app.PreWarmTime = prewarmWindow
 	if prewarmWindow == 0 { // 使用KeepAlive的策略
-		//! functionFinish -> appTryFinish
+		//! functionFinish -> appFinish
 		if e.getTimestamp()+int64(e.app.KeepAliveTime) > e.app.FinishTime { // 产生了新的结束时间
 			e.app.FinishTime = e.getTimestamp() + int64(e.app.KeepAliveTime)
 			s.addEvent(&AppFinishEvent{
@@ -171,12 +84,6 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 }
 
 func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
-	if appHistogram[e.app.AppID] == nil {
-		appHistogram[e.app.AppID] = &histogram{
-			sum:   0,
-			array: make([]int, 360),
-		}
-	}
 	flag := 0
 	if s.AppContainerMap[e.app.AppID] == nil {
 		flag = 1
@@ -194,10 +101,8 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 		AppFuncMap[e.app.AppID] = make(map[string]int)
 		AppLeft[e.app.AppID] = make(map[string]int64)
 	}
-	if !ContainerIdleMap[s.AppContainerMap[e.app.AppID]] {
-		ContainerIdleMap[s.AppContainerMap[e.app.AppID]] = true
-		ContainerIdleList = append(ContainerIdleList, s.AppContainerMap[e.app.AppID])
-	}
+
+	AddToIdleList(s.AppContainerMap[e.app.AppID])
 
 	if flag == 1 && e.function == nil { // 预热
 		e.app.FinishTime = e.getTimestamp() + int64(e.app.InitTime) + int64(e.app.KeepAliveTime)
@@ -212,21 +117,33 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 	}
 
 	if e.function != nil {
-		e.app.FunctionCnt += 1
+		e.app.FunctionCnt += 1 // 表示这个app已经被预定了
+		//! appInit -> functionStart
 		startTime := e.getTimestamp()
 		if e.app.InitDoneTimeStamp > e.getTimestamp() {
 			startTime = e.app.InitDoneTimeStamp + 1
 		}
-		//! appInit -> functionStart
-		s.addEvent(&FunctionStartEvent{
-			baseEvent: baseEvent{
-				id:        s.newEventId(),
-				timestamp: startTime,
-			},
-			function:  e.function,
-			app:       e.app,
-			container: s.AppContainerMap[e.app.AppID],
-		})
+		if startTime == e.getTimestamp() {
+			s.handleFuncStartEvent(&FunctionStartEvent{
+				baseEvent: baseEvent{
+					id:        s.newEventId(),
+					timestamp: startTime,
+				},
+				function:  e.function,
+				app:       e.app,
+				container: s.AppContainerMap[e.app.AppID],
+			})
+		} else {
+			s.addEvent(&FunctionStartEvent{
+				baseEvent: baseEvent{
+					id:        s.newEventId(),
+					timestamp: startTime,
+				},
+				function:  e.function,
+				app:       e.app,
+				container: s.AppContainerMap[e.app.AppID],
+			})
+		}
 	}
 }
 
@@ -234,11 +151,9 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 	if e.app == nil || e.container == nil || s.AppContainerMap[e.app.AppID] == nil || e.app.FunctionCnt != 0 || e.app.FinishTime != e.getTimestamp() {
 		return
 	}
-	if ContainerIdleMap[e.container] {
-		ContainerIdleMap[e.container] = false
+	if IsExistInIdleList(e.container) {
+		RemoveIdleContainer(e.container)
 	}
-	RemoveIdleContainer(e.container)
-
 	s.TimeRunningUsage += e.app.RunningGain
 	s.MEMRunningUsage += e.app.MemRunningGain
 
@@ -270,53 +185,12 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 				PreWarmTime:       0,
 				FinishTime:        0,
 				Left:              int64(-1),
+				Score:             s.getScore(e.app.AppID),
 			},
 		})
 	}
 	e.app = nil
 	e.container = nil
-}
-
-// ***************************** Submit *********************************************
-func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
-	fmt.Printf("Batch Submit Event: %d day %d minute\n\n", e.day, e.minute)
-	if e.minute == 1 {
-		initMap()
-		ParseMemory(e.day)
-		ParseDuration(e.day)
-	}
-	requests := ParseRequests(e.day, e.minute)
-	//! batchFunctionSubmit -> functionSubmit
-	for _, req := range requests {
-		if appHistogram[req.AppID] == nil {
-			appHistogram[req.AppID] = &histogram{
-				sum:   0,
-				array: make([]int, histogramLength),
-			}
-		}
-		if preTime[req.AppID] != 0 {
-			interval := float64(req.ArrivalTime - preTime[req.AppID])
-			interval_min := int(math.Ceil(interval / (1000 * 60)))
-			if interval_min >= histogramLength {
-				interval_min = histogramLength - 1
-			}
-			appHistogram[req.AppID].sum += 1
-			appHistogram[req.AppID].array[interval_min] += 1
-		}
-		preTime[req.AppID] = req.ArrivalTime
-		s.addEvent(&FunctionSubmitEvent{
-			baseEvent: baseEvent{
-				id:        s.newEventId(),
-				timestamp: req.ArrivalTime,
-			},
-			function: &Function{
-				FuncID:   req.FuncID,
-				AppID:    req.AppID,
-				FuncType: req.FuncType,
-				RunTime:  req.RunTime,
-			},
-		})
-	}
 }
 
 func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
@@ -329,13 +203,17 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 	if s.AppContainerMap[appID] != nil { // warm start
 		container := s.AppContainerMap[appID]
 		startTime := e.getTimestamp()
-		container.App.FunctionCnt += 1
 		if container.App.InitDoneTimeStamp < e.getTimestamp() { // 说明容器已经初始化完成
 			s.warmStartCnt++
 			s.appWarmStartCnt[appID] += 1
+			if policy == "maxColdStartRate" {
+				container.App.Score = s.getScore(appID)
+				heap.Fix(h, container.Index)
+			}
 		} else {
 			startTime = container.App.InitDoneTimeStamp
 		}
+		container.App.FunctionCnt += 1
 		//! functionSubmit -> functionStart
 		s.addEvent(&FunctionStartEvent{
 			baseEvent: baseEvent{
@@ -365,20 +243,8 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 				PreWarmTime:       defaultPreWarmTime,
 				FinishTime:        0,
 				Left:              int64(-1),
+				Score:             s.getScore(appID),
 			},
 		})
-	}
-}
-
-func RemoveIdleContainer(cont *Container) {
-	for i, v := range ContainerIdleList {
-		if v == cont {
-			if i == len(ContainerIdleList)-1 { // 考虑如果是最后一个元素的情况
-				ContainerIdleList = ContainerIdleList[:i]
-			} else {
-				ContainerIdleList = append(ContainerIdleList[:i], ContainerIdleList[i+1:]...)
-			}
-			return
-		}
 	}
 }

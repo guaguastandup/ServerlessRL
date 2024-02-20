@@ -25,4 +25,6 @@ type Application struct {
 	Left           int64
 	RunningGain    int64
 	MemRunningGain int64
+	// Score
+	Score float64
 }

@@ -9,8 +9,9 @@ import (
 	"strconv"
 )
 
-// var Prefix string = "/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/"
-var Prefix string = "/xinyue/ServerlessRL/dataset/azurefunctions/"
+var Prefix string = "/Users/zhangxinyue/go/src/serverlessRL/dataset/azurefunctions/"
+
+// var Prefix string = "/xinyue/ServerlessRL/dataset/azurefunctions/"
 
 type FUNCTION_TYPE int
 

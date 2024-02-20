@@ -14,10 +14,13 @@ cleanup() {
 }
 trap cleanup SIGINT
 
-keepAliveList=(5 120)
+# keepAliveList=(5 120)
+keepAliveList=(30)
 # policyList=('random' 'lru' 'maxmem' 'maxKeepAlive' 'minUsage' 'maxColdStartRate')
-policyList=('random' 'lru' 'maxmem')
-memoryList=(1000 1500 2000)
+# policyList=('random' 'lru' 'maxmem')
+policyList=('maxmem')
+# memoryList=(1000 1500 2000)
+memoryList=(1200)
 
 cd pkg/system && go build
 
@@ -30,7 +33,8 @@ do
             fixed=1
             arrivalCnt=50
             prewarm=0
-            file="fixed-$policy-$keepAlive-$prewarm-$memory-$arrivalCnt"
+            # file="fixed-$policy-$keepAlive-$prewarm-$memory-$arrivalCnt"
+            file="try"
             echo $file
             ./system $keepAlive $prewarm $memory $arrivalCnt $fixed 0 0 0 0 $policy > ../output/$file.log &
         done

@@ -1,22 +1,25 @@
 package main
 
-import "container/list"
-
-// var ContainerIdleList []*Container
-// var ContainerIdleMap map[*Container]bool = make(map[*Container]bool) // 一开始全都是空闲的
+import (
+	"container/list"
+	"fmt"
+)
 
 var ContainerIdleList *list.List = list.New()
 var ContainerIdleMap map[int64]*list.Element = make(map[int64]*list.Element) // delete by container id
 
-func DeleteFromIdleList(id int64) {
+func RemoveIdleContainer(container *Container) {
+	id := container.ID
 	nodeToDelete, exists := ContainerIdleMap[id]
 	if exists {
 		ContainerIdleList.Remove(nodeToDelete) // 从链表中删除该节点
 		delete(ContainerIdleMap, id)           // 从映射中删除该节点的指针
+		h.RemoveByID(id)
 	} else {
-		panic("delete no element")
+		fmt.Println(len(ContainerIdleMap), ContainerIdleList.Len())
+		fmt.Println(container.ID)
+		panic("delete no element, " + fmt.Sprintf("%d", container.ID))
 	}
-	return
 }
 
 func AddToIdleList(container *Container) {
@@ -25,6 +28,7 @@ func AddToIdleList(container *Container) {
 	}
 	ele := ContainerIdleList.PushBack(container)
 	ContainerIdleMap[container.ID] = ele
+	h.Push(container)
 }
 
 func IsExistInIdleList(container *Container) bool {

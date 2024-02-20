@@ -2,21 +2,16 @@ package main
 
 import "sort"
 
-var histogramLength int = 100
+var histogramLength int = 120
+
+var appHistogram map[string]*histogram = make(map[string]*histogram)
+
+var preTime map[string]int64 = make(map[string]int64)
 
 type histogram struct {
 	sum            int
 	array          []int
 	nonZeroIndexes []int
-}
-
-func contains(s []int, e int) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }
 
 func insertSorted(s []int, e int) []int {
@@ -32,19 +27,21 @@ func insertSorted(s []int, e int) []int {
 	return s
 }
 
-func updateHistogram(appID string, index int, value int) {
+func updateHistogram(appID string, index int) {
 	if appHistogram[appID] == nil {
 		appHistogram[appID] = &histogram{
 			array:          make([]int, histogramLength),
 			nonZeroIndexes: make([]int, 0),
 		}
 	}
-
-	appHistogram[appID].array[index] += value
-	if appHistogram[appID].array[index] > 0 && !contains(appHistogram[appID].nonZeroIndexes, index) {
-		// 将新的非零索引插入到有序列表中
+	if index >= histogramLength {
+		index = histogramLength - 1
+	}
+	if appHistogram[appID].array[index] == 0 {
 		appHistogram[appID].nonZeroIndexes = insertSorted(appHistogram[appID].nonZeroIndexes, index)
 	}
+	appHistogram[appID].sum += 1
+	appHistogram[appID].array[index] += 1
 }
 
 func getWindow(app *Application) (int, int) {

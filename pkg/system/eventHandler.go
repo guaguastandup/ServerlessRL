@@ -50,7 +50,13 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 		} else if stringEquals(policy, "maxmem") {
 			maxMem := 0
 			for _, cont := range ContainerIdleList {
-				if cont.App.MEMResources > maxMem {
+				if cont == nil {
+					panic("container is nil")
+				}
+				if cont.App == nil {
+					panic("app is nil")
+				}
+				if cont.App.MEMResources >= maxMem {
 					maxMem = cont.App.MEMResources
 					container = cont
 				}
@@ -102,12 +108,13 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 }
 
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
-
 	if ContainerIdleMap[e.container] {
+		if e.container == nil {
+			panic("why why container is nil")
+		}
 		ContainerIdleMap[e.container] = false
 		RemoveIdleContainer(e.container)
 	}
-
 	AppFuncMap[e.app.AppID][e.function.FuncID] += 1
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 1 {
 		s.totalMemRunning += int64(MemoryFuncMap[e.function.AppID])
@@ -148,6 +155,9 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 	if e.app.FunctionCnt == 0 {
 		if !ContainerIdleMap[e.container] {
 			ContainerIdleMap[e.container] = true
+			if e.container == nil {
+				panic("why container is nil")
+			}
 			ContainerIdleList = append(ContainerIdleList, e.container)
 		}
 	}
@@ -191,21 +201,73 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 	flag := 0
 	if s.AppContainerMap[e.app.AppID] == nil {
 		flag = 1
-		_ = s.NewContainer(e)
+		cont := s.NewContainer(e)
+		s.AppContainerMap[e.app.AppID] = cont
 		e.app.InitTimeStamp = e.getTimestamp()
 		e.app.InitDoneTimeStamp = e.getTimestamp() + int64(e.app.InitTime)
 		s.totalMemUsing += int64(e.app.MEMResources)
+		if s.AppContainerMap[e.app.AppID] == nil {
+			panic("got you here, " + e.app.AppID)
+		}
+		if ContainerIdleMap[s.AppContainerMap[e.app.AppID]] {
+			if flag == 1 {
+				panic("111whywhywhy init finish, container nil, and in idleMap and flag == 1" + e.app.AppID)
+			} else {
+				panic("111whywhywhy init finish, container nil, and in idleMap " + e.app.AppID)
+			}
+		}
 		if s.totalMemUsing > s.MEMCapacity { // Memory Overload
 			s.handleEvictEvent(&baseEvent{
 				id:        s.newEventId(),
 				timestamp: e.getTimestamp(),
 			})
 		}
+		if cont == nil {
+			panic("wow wait")
+		}
+		if s.AppContainerMap[e.app.AppID] == nil {
+			if ContainerIdleMap[s.AppContainerMap[e.app.AppID]] {
+				if flag == 1 {
+					panic("whywhywhy init finish, container nil, and in idleMap and flag == 1" + e.app.AppID)
+				} else {
+					panic("whywhywhy init finish, container nil, and in idleMap " + e.app.AppID)
+				}
+			} else {
+				if flag == 1 {
+					panic("whywhywhy init finish, container nil, and not in idleMap and flag == 1" + e.app.AppID)
+				} else {
+					panic("whywhywhy init finish, container nil, and not in idleMap " + e.app.AppID)
+				}
+			}
+		}
 		AppFuncMap[e.app.AppID] = make(map[string]int)
 		AppLeft[e.app.AppID] = make(map[string]int64)
 	}
+	if s.AppContainerMap[e.app.AppID] == nil {
+		if ContainerIdleMap[s.AppContainerMap[e.app.AppID]] {
+			if flag == 1 {
+				panic("init finish, container nil, and in idleMap and flag == 1" + e.app.AppID)
+			} else {
+				panic("init finish, container nil, and in idleMap " + e.app.AppID)
+			}
+		} else {
+			if flag == 1 {
+				panic("init finish, container nil, and not in idleMap and flag == 1" + e.app.AppID)
+			} else {
+				panic("init finish, container nil, and not in idleMap " + e.app.AppID)
+			}
+		}
+	}
+	if !ContainerIdleMap[s.AppContainerMap[e.app.AppID]] {
+		ContainerIdleMap[s.AppContainerMap[e.app.AppID]] = true
+		ContainerIdleList = append(ContainerIdleList, s.AppContainerMap[e.app.AppID])
+	}
+
 	if flag == 1 && e.function == nil { // 预热
 		e.app.FinishTime = e.getTimestamp() + int64(e.app.InitTime) + int64(e.app.KeepAliveTime)
+		if s.AppContainerMap[e.app.AppID] == nil {
+			panic("func start1 : container is nil")
+		}
 		s.addEvent(&AppFinishEvent{
 			baseEvent: baseEvent{
 				id:        s.newEventId(),
@@ -220,7 +282,10 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 		e.app.FunctionCnt += 1
 		startTime := e.getTimestamp()
 		if e.app.InitDoneTimeStamp > e.getTimestamp() {
-			startTime = e.app.InitDoneTimeStamp
+			startTime = e.app.InitDoneTimeStamp + 1
+		}
+		if s.AppContainerMap[e.app.AppID] == nil {
+			panic("func start2 : container is nil" + e.app.AppID)
 		}
 		//! appInit -> functionStart
 		s.addEvent(&FunctionStartEvent{
@@ -236,14 +301,13 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 }
 
 func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
-	if e.app == nil || e.app.FunctionCnt != 0 || e.app.FinishTime != e.getTimestamp() {
+	if e.app == nil || e.container == nil || s.AppContainerMap[e.app.AppID] == nil || e.app.FunctionCnt != 0 || e.app.FinishTime != e.getTimestamp() {
 		return
 	}
-
 	if ContainerIdleMap[e.container] {
 		ContainerIdleMap[e.container] = false
-		RemoveIdleContainer(e.container)
 	}
+	RemoveIdleContainer(e.container)
 
 	s.TimeRunningUsage += e.app.RunningGain
 	s.MEMRunningUsage += e.app.MemRunningGain
@@ -280,6 +344,7 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 		})
 	}
 	e.app = nil
+	e.container = nil
 }
 
 // ***************************** Submit *********************************************
@@ -333,14 +398,13 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 
 	if s.AppContainerMap[appID] != nil { // warm start
 		container := s.AppContainerMap[appID]
-		app := container.App
 		startTime := e.getTimestamp()
-		app.FunctionCnt += 1
-		if app.InitDoneTimeStamp < e.getTimestamp() { // 说明容器已经初始化完成
+		container.App.FunctionCnt += 1
+		if container.App.InitDoneTimeStamp < e.getTimestamp() { // 说明容器已经初始化完成
 			s.warmStartCnt++
 			s.appWarmStartCnt[appID] += 1
 		} else {
-			startTime = app.InitDoneTimeStamp
+			startTime = container.App.InitDoneTimeStamp
 		}
 		//! functionSubmit -> functionStart
 		s.addEvent(&FunctionStartEvent{
@@ -354,7 +418,7 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 		})
 	} else { // cold start
 		//! functionSubmit -> appInit
-		s.addEvent(&AppInitEvent{ // todo: 此处需要考虑delayed hits的问题
+		s.handleAppInitEvent(&AppInitEvent{ // todo: 此处需要考虑delayed hits的问题
 			baseEvent: baseEvent{
 				id:        s.newEventId(),
 				timestamp: e.getTimestamp(),
@@ -418,6 +482,3 @@ func getWindow(app *Application) (int, int) {
 }
 
 // 0110101010100001000010101
-// 0010101010001111001011111
-// 0101111111011101011101011
-// 1011011110101011110101111

@@ -25,7 +25,7 @@ var rightBound float64 = 0.95
 var policy string = "lru"
 
 type Container struct {
-	ID               int
+	ID               int64
 	App              *Application
 	MEMUsage         int64 // 申请的Usage
 	MEMRunningUsage  int64 // 运行时的Usage
@@ -39,7 +39,7 @@ type Server struct { // Server-wide
 	currEventId int64
 	// * Container Map
 	AppContainerMap  map[string]*Container
-	totalContainerID int // 用于生成ContainerID
+	totalContainerID int64 // 用于生成ContainerID
 	// * usage
 	MEMCapacity      int64
 	MemUsage         int64 // 当前的MEM总使用量

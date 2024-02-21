@@ -216,16 +216,23 @@ func ParseRequests(day int, minute int) []*Request {
 		if arrivalCnt > float64(ArricalCnt) {
 			arrivalCnt = float64(ArricalCnt)
 		}
+		interval := int((60 * 1000) / arrivalCnt)
+
+		ColdStartTimeMap[functionID] = ColdStartTimeMap[appID]
+		MemoryFuncMap[functionID] = MemoryFuncMap[appID]
+		MemoryMap[functionID] = MemoryFuncMap[functionID]
+
 		for j := 0; j < int(arrivalCnt); j++ {
 			request := Request{
-				ID:           NewRequestID(),
-				AppID:        appID,
+				ID: NewRequestID(),
+				// AppID:        appID,
+				AppID:        functionID,
 				FuncID:       functionID,
 				FuncType:     FunctionTypeMap[functionType],
-				ArrivalTime:  int64(1140*day*Minute + 60*1000*minute + rand.Intn(60*1000)),
-				RunTime:      int(float64(DurationMap[appID][functionID]) * (0.85 + float64(rand.Intn(100))/100.0)),
-				LoadTime:     int(float64(ColdStartTimeMap[appID]) * 3.0),
-				MEMResources: float64(MemoryMap[appID]),
+				ArrivalTime:  int64(1140*day*Minute + 60*1000*minute + interval*j),
+				RunTime:      int(float64(DurationMap[appID][functionID]) * (0.90 + float64(rand.Intn(30))/100.0)),
+				LoadTime:     int(float64(ColdStartTimeMap[appID]) * 1.5),
+				MEMResources: float64(MemoryFuncMap[functionID]),
 			}
 			if request.RunTime < 0 {
 				continue

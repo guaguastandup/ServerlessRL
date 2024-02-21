@@ -2,11 +2,13 @@ package main
 
 import "sort"
 
-var histogramLength int = 120
+var histogramLength int = 50
 
 var appHistogram map[string]*histogram = make(map[string]*histogram)
 
 var preTime map[string]int64 = make(map[string]int64)
+
+var unit float64 = 1000 * 60
 
 type histogram struct {
 	sum            int
@@ -17,10 +19,8 @@ type histogram struct {
 func insertSorted(s []int, e int) []int {
 	i := sort.SearchInts(s, e)
 	if i < len(s) && s[i] == e {
-		// e already in s at s[i], don't insert again
 		return s
 	}
-	// Insert e at s[i], move others to the right
 	s = append(s, 0)
 	copy(s[i+1:], s[i:])
 	s[i] = e
@@ -45,7 +45,7 @@ func updateHistogram(appID string, index int) {
 }
 
 func getWindow(app *Application) (int, int) {
-	if IsFixed > 0 {
+	if IsFixed > 0 || appHistogram[app.AppID] == nil {
 		return defaultPreWarmTime, defaultKeepAliveTime
 	}
 	sum := appHistogram[app.AppID].sum
@@ -76,16 +76,33 @@ func getWindow(app *Application) (int, int) {
 			break
 		}
 	}
-	return prewarmWindow * 60 * 1000, keepAliveWindow * 60 * 1000
+	if prewarmWindow == 0 && keepAliveWindow == 0 {
+		keepAliveWindow += 1
+	} else if prewarmWindow == keepAliveWindow {
+		prewarmWindow -= 1
+		keepAliveWindow += 1
+	}
+	if prewarmWindow < 2*Minute {
+		prewarmWindow = 0
+	}
+	if keepAliveWindow < 2*Minute {
+		keepAliveWindow = 2 * Minute
+	}
+	prewarmWindow = int(float64(prewarmWindow) * 0.9 * unit)
+	keepAliveWindow = int(float64(keepAliveWindow) * 1.1 * unit)
+	return prewarmWindow, keepAliveWindow
 }
 
 func getPercentage(appID string, time int64) float64 {
-	time1 := float64(time) / (1000.0 * 60)
-
+	if appHistogram[appID] == nil {
+		return 0
+	}
+	time1 := float64(time) / unit
 	sum := appHistogram[appID].sum
 	if sum == 0 {
 		return 0
 	}
+
 	percentage := 0.0
 	nonZeroIndexes := appHistogram[appID].nonZeroIndexes
 	array := appHistogram[appID].array

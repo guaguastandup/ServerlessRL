@@ -9,12 +9,12 @@ var AppRunningTimeUsage map[string]int64 = make(map[string]int64)           // a
 
 var LastIdleTime map[string]int64 = make(map[string]int64) // appID -> last idle time
 
-func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
+var KeepAliveTimeMap map[string]int = make(map[string]int) // appID -> keep alive time
 
+func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 	if IsExistInIdleList(e.container) {
 		RemoveIdleContainer(e.container)
 	}
-
 	AppFuncMap[e.app.AppID][e.function.FuncID] += 1
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 1 {
 		s.totalMemRunning += int64(MemoryFuncMap[e.function.AppID])
@@ -25,11 +25,9 @@ func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 	if e.app.FunctionCnt > 0 && e.app.Left == -1 {
 		e.app.Left = e.getTimestamp()
 	}
-
 	if e.app.FinishTime <= e.getTimestamp()+int64(e.function.RunTime) { // 为了避免函数没有执行结束, App就被销毁的情况
 		e.app.FinishTime = e.getTimestamp() + int64(e.function.RunTime) + 1
 	}
-
 	//! Function Start -> Function Finish
 	s.addEvent(&FunctionFinishEvent{
 		baseEvent: baseEvent{
@@ -40,7 +38,6 @@ func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 		app:       e.app,
 		container: e.container,
 	})
-
 }
 
 func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
@@ -70,6 +67,7 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 	prewarmWindow, keepAliveWindow := getWindow(e.app)
 	e.app.KeepAliveTime = keepAliveWindow
 	e.app.PreWarmTime = prewarmWindow
+	KeepAliveTimeMap[e.app.AppID] = keepAliveWindow
 
 	if prewarmWindow == 0 { // 使用KeepAlive的策略
 		//! functionFinish -> appFinish
@@ -85,27 +83,24 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 			})
 		}
 	} else {
-		e.app.FinishTime = e.getTimestamp() // 立刻删除
-		//! functionFinish -> appFinish
-		s.handleAppFinishEvent(&AppFinishEvent{
-			baseEvent: baseEvent{
-				id:        s.newEventId(),
-				timestamp: e.getTimestamp(),
-			},
-			app:       e.app,
-			container: e.container,
-		})
+		if e.app.FinishTime <= e.getTimestamp() {
+			e.app.FinishTime = e.getTimestamp() // 立刻删除
+			//! functionFinish -> appFinish
+			s.handleAppFinishEvent(&AppFinishEvent{
+				baseEvent: baseEvent{
+					id:        s.newEventId(),
+					timestamp: e.getTimestamp(),
+				},
+				app:       e.app,
+				container: e.container,
+			})
+		}
 	}
 }
 
 func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 	flag := 0
 	if s.AppContainerMap[e.app.AppID] == nil {
-		flag = 1
-		cont := s.NewContainer(e)
-		s.AppContainerMap[e.app.AppID] = cont
-		e.app.InitTimeStamp = e.getTimestamp()
-		e.app.InitDoneTimeStamp = e.getTimestamp() + int64(e.app.InitTime)
 		s.totalMemUsing += int64(e.app.MEMResources)
 		if s.totalMemUsing > s.MEMCapacity { // Memory Overload
 			s.handleEvictEvent(&baseEvent{
@@ -113,10 +108,20 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 				timestamp: e.getTimestamp(),
 			})
 		}
+		cont := s.NewContainer(e)
+		s.AppContainerMap[e.app.AppID] = cont
+		flag = 1
+		e.app.InitTimeStamp = e.getTimestamp()
+		e.app.InitDoneTimeStamp = e.getTimestamp() + int64(e.app.InitTime)
 		AppFuncMap[e.app.AppID] = make(map[string]int)
 		AppLeft[e.app.AppID] = make(map[string]int64)
 	}
-
+	if e.app == nil {
+		panic("impossible: nil app")
+	}
+	if s.AppContainerMap[e.app.AppID] == nil {
+		panic("impossible: nil container")
+	}
 	if !IsExistInIdleList(s.AppContainerMap[e.app.AppID]) {
 		s.AddToIdleList(s.AppContainerMap[e.app.AppID])
 		LastIdleTime[e.app.AppID] = e.getTimestamp()
@@ -185,7 +190,12 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 	s.totalMemUsing -= int64(e.app.MEMResources)
 
 	delete(s.AppContainerMap, e.app.AppID)
-
+	// if e.app.KeepAliveTime/int(unit) != 5 {
+	// 	fmt.Println("KeepAliveTime: ", e.app.KeepAliveTime/int(unit))
+	// }
+	// if e.app.PreWarmTime/int(unit) != 0 {
+	// 	fmt.Println("PreWarmTime: ", e.app.PreWarmTime/int(unit))
+	// }
 	if e.app.PreWarmTime > 0 {
 		s.addEvent(&AppInitEvent{
 			baseEvent: baseEvent{

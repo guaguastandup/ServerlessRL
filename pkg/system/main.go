@@ -81,15 +81,46 @@ func (s *Server) Run() {
 			fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
 			fmt.Printf("Evicted Memory: %.1f GB\n", float64(EvictedMemory/1024.0))
 			fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
+			if e.(*BatchFunctionSubmitEvent).minute%20 == 0 {
+				sum := float64(0)
+				cnt := 0
+				for k, v := range s.appRequestCnt {
+					sum += (1.0 - float64(s.appWarmStartCnt[k])/float64(v))
+					cnt += 1
+				}
+				fmt.Printf("app average coldstart rate: %.4f %%\n", float64(sum)/float64(cnt))
+			}
 			startTime = time.Now()
 			cnt = 0
-			if e.(*BatchFunctionSubmitEvent).minute == 1140 {
+			if e.(*BatchFunctionSubmitEvent).minute%200 == 0 {
+				sum_mem_score, sum_time_score := 0.0, 0.0
+				cnt_mem_score, cnt_time_score := 0, 0
+				for k, v := range AppMemUsage {
+					sum_mem_score += 100.0 * float64(AppRunningMemUsage[k]) / float64(v)
+					cnt_mem_score += 1
+				}
+				for k, v := range AppTimeUsage {
+					sum_time_score += 100.0 * float64(AppRunningTimeUsage[k]) / float64(v)
+					cnt_time_score += 1
+				}
+				fmt.Printf("average mem socre: %.5f\n", sum_mem_score/float64(cnt_mem_score))
+				fmt.Printf("average time socre: %.5f\n", sum_time_score/float64(cnt_time_score))
+			}
+			if e.(*BatchFunctionSubmitEvent).minute == 1140 && e.(*BatchFunctionSubmitEvent).day == 7 {
+				sum_mem_score, sum_time_score := 0.0, 0.0
+				cnt_mem_score, cnt_time_score := 0, 0
 				for k, v := range AppMemUsage {
 					fmt.Printf("app mem socre: %.5f\n", 100.0*float64(AppRunningMemUsage[k])/float64(v))
+					sum_mem_score += 100.0 * float64(AppRunningMemUsage[k]) / float64(v)
+					cnt_mem_score += 1
 				}
 				for k, v := range AppTimeUsage {
 					fmt.Printf("app time socre: %.5f\n", 100.0*float64(AppRunningTimeUsage[k])/float64(v))
+					sum_time_score += 100.0 * float64(AppRunningTimeUsage[k]) / float64(v)
+					cnt_time_score += 1
 				}
+				fmt.Printf("average mem socre: %.5f\n", sum_mem_score/float64(cnt_mem_score))
+				fmt.Printf("average time socre: %.5f\n", sum_time_score/float64(cnt_time_score))
 			}
 		}
 		s.handleEvent(e)
@@ -162,7 +193,7 @@ func main() {
 		appWarmStartCnt: make(map[string]int),
 		appRequestCnt:   make(map[string]int),
 	}
-	for day := 1; day <= 1; day++ {
+	for day := 1; day <= 7; day++ {
 		for i := 0; i < 1140; i++ {
 			Server.addEvent(&BatchFunctionSubmitEvent{
 				baseEvent: baseEvent{

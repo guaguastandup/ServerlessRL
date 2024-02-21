@@ -38,23 +38,6 @@ func (h *IdleContainerHeap) Pop() interface{} {
 }
 
 func (h *IdleContainerHeap) RemoveByID(id int64) {
-	// container, ok := m[id]
-	// if !ok {
-	// 	return
-	// }
-	// index := container.Index
-	// if index == h.Len()-1 {
-	// 	*h = (*h)[:h.Len()-1]
-	// 	delete(m, id)
-	// 	return
-	// }
-	// if index < 0 {
-	// 	return
-	// }
-	// h.Swap(index, h.Len()-1)
-	// *h = (*h)[:h.Len()-1]
-	// heap.Fix(h, index)
-	// delete(m, id)
 	container, ok := m[id]
 	if !ok {
 		return // 元素不存在
@@ -69,4 +52,16 @@ func (h *IdleContainerHeap) RemoveByID(id int64) {
 		heap.Fix(h, index)
 	}
 	delete(m, id)
+}
+
+func (h *IdleContainerHeap) UpdateScore(id int64, newScore float64) {
+	// Step 1: Locate the element in the heap
+	container, ok := m[id]
+	if !ok {
+		return // Element not found
+	}
+	// Step 2: Update the key value
+	container.App.Score = newScore
+	// Step 3: Re-sort the heap
+	heap.Fix(h, container.Index)
 }

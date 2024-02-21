@@ -17,6 +17,12 @@ func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 		ParseDuration(e.day)
 	}
 	requests := ParseRequests(e.day, e.minute)
+	//增加一份preTime的拷贝, 对PreMinTime修改时, 不会修改preTime
+	preMinTime := make(map[string]int64)
+	for k, v := range preTime {
+		preMinTime[k] = v
+	}
+
 	//! batchFunctionSubmit -> functionSubmit
 	for _, req := range requests {
 		if appHistogram[req.AppID] == nil {
@@ -25,12 +31,17 @@ func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 				array: make([]int, histogramLength),
 			}
 		}
-		if preTime[req.AppID] != 0 {
-			interval := float64(req.ArrivalTime - preTime[req.AppID])
-			interval_min := int(math.Ceil(interval / (1000 * 60)))
-			updateHistogram(req.AppID, interval_min)
-			IntervalSum[req.AppID] += interval
-			IntervalCnt[req.AppID] += 1
+		if preMinTime[req.AppID] != 0 {
+			interval := float64(req.ArrivalTime - preMinTime[req.AppID])
+			if interval < 0 {
+				interval = 0
+			}
+			if interval >= 0 {
+				interval_min := int(math.Ceil(interval / unit))
+				updateHistogram(req.AppID, interval_min)
+				IntervalSum[req.AppID] += interval
+				IntervalCnt[req.AppID] += 1
+			}
 		}
 		preTime[req.AppID] = req.ArrivalTime
 		s.addEvent(&FunctionSubmitEvent{

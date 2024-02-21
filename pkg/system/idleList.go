@@ -33,6 +33,9 @@ func (s *Server) AddToIdleList(container *Container) {
 }
 
 func IsExistInIdleList(container *Container) bool {
+	if container == nil {
+		panic("nil container")
+	}
 	return ContainerIdleMap[container.ID] != nil
 }
 
@@ -46,25 +49,10 @@ func FrontElement() *Container {
 }
 
 func BackElement() *Container {
-	ele := ContainerIdleList.Front()
+	ele := ContainerIdleList.Back()
 	container, ok := ele.Value.(*Container)
 	if !ok {
 		panic("not a Container element")
 	}
 	return container
-}
-
-func GetElementByIndex(index int) *Container {
-	ele := ContainerIdleList.Front()
-	for i := 1; i <= index; i++ {
-		ele = ele.Next()
-		if i == index {
-			container, ok := ele.Value.(*Container)
-			if !ok {
-				panic("not a Container element")
-			}
-			return container
-		}
-	}
-	panic("no container satisfied")
 }

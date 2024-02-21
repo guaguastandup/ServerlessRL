@@ -17,8 +17,8 @@ trap cleanup SIGINT
 keepAliveList=(5)
 
 # policyList=('lru' 'lfu' 'mru' 'random' 'maxmem' 'maxmem2' 'maxUsage' 'maxColdStart' 'minColdStart' 'score' 'score3')
-policyList=('maxmem')
-policyList2=('score1' 'score2' 'score4' 'score6')
+policyList=()
+policyList2=('score5')
 # policyList2=('lru' 'lfu' 'random' 'maxmem' 'maxUsage' 'minColdStart' 'score' 'score1' 'score2' 'score3' 'score4')
 # policyList2=('lru' 'lfu' 'mru' 'random' 'maxmem' 'maxmem2' 'maxUsage' 'maxColdStart' 'minColdStart' 'score' 'score1' 'score2' 'score3')
 

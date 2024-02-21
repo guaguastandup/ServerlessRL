@@ -7,6 +7,8 @@ var AppRunningMemUsage map[string]int64 = make(map[string]int64)            // a
 var AppTimeUsage map[string]int64 = make(map[string]int64)                  // appID -> time usage
 var AppRunningTimeUsage map[string]int64 = make(map[string]int64)           // appID -> running time usage
 
+var LastIdleTime map[string]int64 = make(map[string]int64) // appID -> last idle time
+
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 
 	if IsExistInIdleList(e.container) {
@@ -44,7 +46,6 @@ func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 	e.app.FunctionCnt -= 1
 	AppFuncMap[e.app.AppID][e.function.FuncID] -= 1
-	e.app.LastIdleTime = e.getTimestamp() // 记录App最后一次空闲时间
 
 	if AppFuncMap[e.app.AppID][e.function.FuncID] == 0 {
 		s.totalMemRunning -= int64(MemoryFuncMap[e.function.AppID])
@@ -63,6 +64,7 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 	}
 	if e.app.FunctionCnt == 0 && !IsExistInIdleList(e.container) {
 		s.AddToIdleList(e.container)
+		LastIdleTime[e.app.AppID] = e.getTimestamp()
 	}
 
 	prewarmWindow, keepAliveWindow := getWindow(e.app)
@@ -117,6 +119,7 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 
 	if !IsExistInIdleList(s.AppContainerMap[e.app.AppID]) {
 		s.AddToIdleList(s.AppContainerMap[e.app.AppID])
+		LastIdleTime[e.app.AppID] = e.getTimestamp()
 	}
 
 	if flag == 1 && e.function == nil { // 预热
@@ -201,7 +204,7 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 				PreWarmTime:       0,
 				FinishTime:        0,
 				Left:              int64(-1),
-				Score:             s.getScore(e.app.AppID),
+				Score:             s.getScore(e.app.AppID, e.getTimestamp()),
 			},
 		})
 	}
@@ -267,7 +270,7 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 				PreWarmTime:       defaultPreWarmTime,
 				FinishTime:        0,
 				Left:              int64(-1),
-				Score:             s.getScore(appID),
+				Score:             s.getScore(appID, e.getTimestamp()),
 			},
 		})
 	}

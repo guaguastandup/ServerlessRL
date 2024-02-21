@@ -5,6 +5,9 @@ import (
 	"math"
 )
 
+var IntervalSum map[string]float64 = make(map[string]float64)
+var IntervalCnt map[string]int = make(map[string]int)
+
 // ***************************** Submit *********************************************
 func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 	fmt.Printf("Batch Submit Event: %d day %d minute\n\n", e.day, e.minute)
@@ -26,6 +29,8 @@ func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 			interval := float64(req.ArrivalTime - preTime[req.AppID])
 			interval_min := int(math.Ceil(interval / (1000 * 60)))
 			updateHistogram(req.AppID, interval_min)
+			IntervalSum[req.AppID] += interval
+			IntervalCnt[req.AppID] += 1
 		}
 		preTime[req.AppID] = req.ArrivalTime
 		s.addEvent(&FunctionSubmitEvent{

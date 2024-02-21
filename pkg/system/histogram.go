@@ -78,3 +78,24 @@ func getWindow(app *Application) (int, int) {
 	}
 	return prewarmWindow * 60 * 1000, keepAliveWindow * 60 * 1000
 }
+
+func getPercentage(appID string, time int64) float64 {
+	time1 := float64(time) / (1000.0 * 60)
+
+	sum := appHistogram[appID].sum
+	if sum == 0 {
+		return 0
+	}
+	percentage := 0.0
+	nonZeroIndexes := appHistogram[appID].nonZeroIndexes
+	array := appHistogram[appID].array
+
+	for _, index := range nonZeroIndexes {
+		if index <= int(time1) {
+			percentage += float64(array[index])
+		} else {
+			break
+		}
+	}
+	return percentage / float64(sum)
+}

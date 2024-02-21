@@ -14,11 +14,13 @@ cleanup() {
 }
 trap cleanup SIGINT
 
-# go build && ./system 5 0 1500 50 0 50 0.05 0.1 0.95 lru > ../output/try3.log
+# go build && ./system 5 0 1500 50 0 50 0.05 0.1 0.95 lru > ../output/try.log
 
-keepAliveList=(5 10 15 30 60 120)
-policyList=('random' 'lru' 'maxmem' 'maxKeepAlive' 'minUsage' 'maxColdStartRate')
-memoryList=(800 1000 1200 1500 2000)
+keepAliveList=(5)
+# policyList=('random' 'lru' 'maxmem' 'maxKeepAlive' 'minUsage' 'maxColdStartRate')
+policyList=('score' 'score1' 'score2' 'score3' 'maxKeepAlive' 'minKeepAlive' 'maxUsage' 'minColdStartRate')
+# memoryList=(500 900 1300 1700)
+memoryList=(500 1300)
 
 cd pkg/system && go build
 
@@ -31,38 +33,38 @@ do
             fixed=1
             arrivalCnt=50
             prewarm=0
-            file="fixed-$policy-$keepAlive-$prewarm-$memory-$arrivalCnt"
+            file="fixed/$policy/fixed-$policy-$keepAlive-$prewarm-$memory-$arrivalCnt"
             echo $file
             ./system $keepAlive $prewarm $memory $arrivalCnt $fixed 0 0 0 0 $policy > ../output/$file.log &
         done
-        wait
+        # wait
     done
     wait
 done
 
 wait
 
-# for keepAlive in "${keepAliveList[@]}"
-# do
-#     for policy in "${policyList[@]}"
-#     do 
-#         for memory in "${memoryList[@]}"
-#         do 
-#             fixed=0
-#             arrivalCnt=50
-#             prewarm=0
-#             sum=50
-#             leftBound=0.05
-#             leftBound2=0.10
-#             rightBound=0.95
-#             file="fixed-$policy-$keepAlive-$prewarm-$memory-$arrivalCnt"
-#             echo $file
-#             ./system $keepAlive $prewarm $memory $arrivalCnt $fixed $sum $leftBound $leftBound2 $rightBound $policy > ../output/$file.log &
-#         done
-#         wait
-#     done
-#     wait
-# done
+for keepAlive in "${keepAliveList[@]}"
+do
+    for policy in "${policyList[@]}"
+    do 
+        for memory in "${memoryList[@]}"
+        do 
+            fixed=0
+            arrivalCnt=50
+            prewarm=0
+            sum=50
+            leftBound=0.05
+            leftBound2=0.10
+            rightBound=0.95
+            file="histogram/$policy/histogram-$policy-$keepAlive-$prewarm-$memory-$arrivalCnt"
+            echo $file
+            ./system $keepAlive $prewarm $memory $arrivalCnt $fixed $sum $leftBound $leftBound2 $rightBound $policy > ../output/$file.log &
+        done
+        # wait
+    done
+    wait
+done
 
 wait
 

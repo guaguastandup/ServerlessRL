@@ -18,50 +18,8 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 		switch policy {
 		case "lru":
 			container = FrontElement()
-		case "random":
-			// index := rand.Intn(ContainerIdleList.Len())
-			// container = GetElementByIndex(index)
-			container = heap.Pop(h).(*Container)
-		case "maxmem":
-			// maxMem := 0
-			// for ele := ContainerIdleList.Front(); ele != nil; ele = ele.Next() {
-			// 	if ele.Value.(*Container).App.MEMResources >= maxMem {
-			// 		maxMem = ele.Value.(*Container).App.MEMResources
-			// 		container = ele.Value.(*Container)
-			// 	}
-			// }
-			container = heap.Pop(h).(*Container)
-		case "maxKeepAlive":
-			// maxKeepAlive := 0
-			// for ele := ContainerIdleList.Front(); ele != nil; ele = ele.Next() {
-			// 	if ele.Value.(*Container).App.KeepAliveTime >= maxKeepAlive {
-			// 		maxKeepAlive = ele.Value.(*Container).App.KeepAliveTime
-			// 		container = ele.Value.(*Container)
-			// 	}
-			// }
-			container = heap.Pop(h).(*Container)
-		case "minUsage":
-			// minUsage := int64(1e18)
-			// for ele := ContainerIdleList.Front(); ele != nil; ele = ele.Next() {
-			// 	appID := ele.Value.(*Container).App.AppID
-			// 	if AppRunningMemUsage[appID] < minUsage {
-			// 		minUsage = AppRunningMemUsage[appID]
-			// 		container = ele.Value.(*Container)
-			// 	}
-			// }
-			container = heap.Pop(h).(*Container)
-		case "maxColdStartRate":
-			// maxColdStart := float64(0.0)
-			// for ele := ContainerIdleList.Front(); ele != nil; ele = ele.Next() {
-			// 	appID := ele.Value.(*Container).App.AppID
-			// 	if float64(s.appWarmStartCnt[appID])/float64(s.appRequestCnt[appID]) >= maxColdStart {
-			// 		maxColdStart = float64(s.appWarmStartCnt[appID]) / float64(s.appRequestCnt[appID])
-			// 		container = ele.Value.(*Container)
-			// 	}
-			// }
-			container = heap.Pop(h).(*Container)
 		default:
-			panic("Unknown policy! " + policy + container.App.AppID)
+			container = heap.Pop(h).(*Container)
 		}
 		RemoveIdleContainer(container)
 		EvictedMemory += int64(container.App.MEMResources)
@@ -77,7 +35,7 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 	}
 }
 
-func (s *Server) getScore(appID string) float64 {
+func (s *Server) getScore(appID string, timestamp int64) float64 {
 	score := 0.0
 	switch policy {
 	case "lru":
@@ -87,11 +45,60 @@ func (s *Server) getScore(appID string) float64 {
 	case "maxmem":
 		score = float64(MemoryMap[appID])
 	case "maxKeepAlive":
-		score = float64(defaultKeepAliveTime)
+		score = float64(s.currTime - LastIdleTime[appID])
+	case "minKeepAlive":
+		score = -float64(s.currTime - LastIdleTime[appID])
+	case "maxUsage":
+		if AppRunningTimeUsage[appID] == 0 {
+			score = 0
+		} else {
+			score = float64(AppRunningMemUsage[appID] / AppRunningTimeUsage[appID])
+		}
 	case "minUsage":
-		score = -float64(AppRunningMemUsage[appID]) / float64(AppRunningTimeUsage[appID])
+		if AppRunningTimeUsage[appID] == 0 {
+			score = 0
+		} else {
+			score = -float64(AppRunningMemUsage[appID]) / float64(AppRunningTimeUsage[appID])
+		}
 	case "maxColdStartRate":
 		score = 1.0 - (float64(s.appWarmStartCnt[appID]) / float64(s.appRequestCnt[appID]))
+	case "minColdStartRate":
+		score = float64(s.appWarmStartCnt[appID]) / float64(s.appRequestCnt[appID])
+	case "score": // 内存大小 * 到达的平均间隔
+		avg := float64(0)
+		if IntervalCnt[appID] != 0 {
+			avg = float64(IntervalSum[appID] / float64(IntervalCnt[appID]))
+		}
+		score = float64(MemoryMap[appID]) * avg
+	case "score1": // 内存大小 * 到达的平均间隔 * 保持活跃的时间百分比
+		avg := float64(0)
+		if IntervalCnt[appID] != 0 {
+			avg = float64(IntervalSum[appID] / float64(IntervalCnt[appID]))
+		}
+		score = float64(MemoryMap[appID]) * avg
+		keepAliveTime := s.currTime - LastIdleTime[appID]
+		percentage := getPercentage(appID, keepAliveTime)
+		score = score * percentage
+	case "score2": // 内存大小 * 到达的平均间隔 * 保持活跃的时间百分比 / 热启动率, 热启动率越大, 分数越小
+		avg := float64(0)
+		if IntervalCnt[appID] != 0 {
+			avg = float64(IntervalSum[appID] / float64(IntervalCnt[appID]))
+		}
+		score = float64(MemoryMap[appID]) * avg
+
+		keepAliveTime := s.currTime - LastIdleTime[appID]
+		percentage := getPercentage(appID, keepAliveTime)
+		warmstart_Rate := float64(s.appWarmStartCnt[appID]) / float64(s.appRequestCnt[appID])
+		if warmstart_Rate == 0 {
+			warmstart_Rate = 10000000000.0
+		}
+		score = score * percentage / warmstart_Rate
+	case "score3":
+		if IntervalCnt[appID] != 0 {
+			score = float64(MemoryMap[appID]) / float64(IntervalCnt[appID]) // cnt大, 分数小
+		} else {
+			score = float64(MemoryMap[appID])
+		}
 	default:
 		panic("Unknown policy! " + policy)
 	}

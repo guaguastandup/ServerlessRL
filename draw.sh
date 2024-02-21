@@ -1,1 +1,1 @@
-python3 draw_multi.py
+python3 draw_multi.py $1

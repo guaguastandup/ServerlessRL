@@ -28,7 +28,7 @@ func (s *Server) AddToIdleList(container *Container) {
 	}
 	ele := ContainerIdleList.PushBack(container)
 	ContainerIdleMap[container.ID] = ele
-	container.App.Score = s.getScore(container.App.AppID)
+	container.App.Score = s.getScore(container.App.AppID, s.currTime)
 	h.Push(container)
 }
 

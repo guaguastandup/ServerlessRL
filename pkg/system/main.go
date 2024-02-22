@@ -81,7 +81,7 @@ func (s *Server) Run() {
 			fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
 			fmt.Printf("Evicted Memory: %.1f GB\n", float64(EvictedMemory/1024.0))
 			fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
-			if e.(*BatchFunctionSubmitEvent).minute%20 == 0 {
+			if e.(*BatchFunctionSubmitEvent).minute%50 == 0 {
 				sum := float64(0)
 				cnt := 0
 				for k, v := range s.appRequestCnt {
@@ -92,7 +92,7 @@ func (s *Server) Run() {
 			}
 			startTime = time.Now()
 			cnt = 0
-			if e.(*BatchFunctionSubmitEvent).minute%200 == 0 {
+			if e.(*BatchFunctionSubmitEvent).minute%100 == 0 {
 				sum_mem_score, sum_time_score := 0.0, 0.0
 				cnt_mem_score, cnt_time_score := 0, 0
 				for k, v := range AppMemUsage {
@@ -106,7 +106,7 @@ func (s *Server) Run() {
 				fmt.Printf("average mem socre: %.5f\n", sum_mem_score/float64(cnt_mem_score))
 				fmt.Printf("average time socre: %.5f\n", sum_time_score/float64(cnt_time_score))
 			}
-			if e.(*BatchFunctionSubmitEvent).minute == 1140 && e.(*BatchFunctionSubmitEvent).day == 7 {
+			if e.(*BatchFunctionSubmitEvent).minute == 1140 && e.(*BatchFunctionSubmitEvent).day == 4 {
 				sum_mem_score, sum_time_score := 0.0, 0.0
 				cnt_mem_score, cnt_time_score := 0, 0
 				for k, v := range AppMemUsage {
@@ -125,6 +125,7 @@ func (s *Server) Run() {
 		}
 		s.handleEvent(e)
 	}
+
 	fmt.Printf("MemOccupyingUsage: %.1f GB\n", float64(s.totalMemUsing/1024.0))
 	fmt.Printf("MEMRunningUsage: %.1f GB\n", float64(s.totalMemRunning/1024.0))
 	fmt.Printf("Mem Score: %.4f %%\n", 100.0*float64(s.MEMRunningUsage)/float64(s.MemUsage))
@@ -193,7 +194,8 @@ func main() {
 		appWarmStartCnt: make(map[string]int),
 		appRequestCnt:   make(map[string]int),
 	}
-	for day := 1; day <= 7; day++ {
+
+	for day := 1; day <= 4; day++ {
 		for i := 0; i < 1140; i++ {
 			Server.addEvent(&BatchFunctionSubmitEvent{
 				baseEvent: baseEvent{

@@ -1,14 +1,17 @@
 package main
 
-import "sort"
+import (
+	"math"
+	"sort"
+)
 
-var histogramLength int = 50
+var histogramLength int = 200
 
 var appHistogram map[string]*histogram = make(map[string]*histogram)
 
 var preTime map[string]int64 = make(map[string]int64)
 
-var unit float64 = 1000 * 60
+var unit float64 = 1000 * 30
 
 type histogram struct {
 	sum            int
@@ -82,14 +85,14 @@ func getWindow(app *Application) (int, int) {
 		prewarmWindow -= 1
 		keepAliveWindow += 1
 	}
-	if prewarmWindow < 2*Minute {
-		prewarmWindow = 0
-	}
+	// if prewarmWindow <= 30*Second {
+	// 	prewarmWindow = 0
+	// }
 	if keepAliveWindow < 2*Minute {
-		keepAliveWindow = 2 * Minute
+		keepAliveWindow = int(2 * float64(Minute))
 	}
-	prewarmWindow = int(float64(prewarmWindow) * 0.9 * unit)
-	keepAliveWindow = int(float64(keepAliveWindow) * 1.1 * unit)
+	prewarmWindow = int(float64(prewarmWindow) * 0.8 * unit)
+	keepAliveWindow = int(float64(keepAliveWindow) * 1.2 * unit)
 	return prewarmWindow, keepAliveWindow
 }
 
@@ -115,4 +118,21 @@ func getPercentage(appID string, time int64) float64 {
 		}
 	}
 	return percentage / float64(sum)
+}
+
+// 计算变异性系数
+func getCV(appID string) float64 {
+	if IntervalSum[appID] == 0 {
+		return -1
+	}
+
+	avg := float64(IntervalCnt[appID]) / float64(IntervalSum[appID])
+	nonZeroIndexes := appHistogram[appID].nonZeroIndexes
+	array := appHistogram[appID].array
+	sum := 0.0
+	for _, index := range nonZeroIndexes {
+		sum += float64(array[index]) * (float64(index) - avg) * (float64(index) - avg)
+	}
+	cv := math.Sqrt(sum/float64(float64(IntervalSum[appID])-1)) / avg
+	return cv
 }

@@ -98,6 +98,41 @@ func (s *Server) getScore(appID string, timestamp int64) float64 {
 		keepAliveTime := (s.currTime - LastIdleTime[appID])
 		percentage := getPercentage(appID, keepAliveTime)
 		score = score * percentage * warmstart_Rate
+	case "score7": // 目前最佳
+		keepAliveTime := (s.currTime - LastIdleTime[appID])
+		score = getPercentage(appID, keepAliveTime)
+	case "score8":
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval)
+		memory := math.Pow(float64(MemoryMap[appID]), 1.5)
+		score = memory + percentage*100
+	case "score9":
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval)
+		memory := math.Pow(float64(MemoryMap[appID]), 1.5)
+		score = memory + percentage*100
+	case "cv":
+		interval := s.currTime - LastIdleTime[appID]
+		percentage := getPercentage(appID, interval)
+		percentage = math.Pow(percentage, 0.5)
+		memory := math.Pow(float64(MemoryMap[appID]), 1.5)
+		b := math.Pow(float64(IntervalCnt[appID]), 0.5)
+		score = memory * percentage / b
+		// cv := getCV(appID)
+		// if cv == -1 {
+		// 	score = memory * percentage
+		// } else if cv <= 0.1 {
+		// 	score = memory * percentage * 0.5
+		// } else if cv <= 0.3 {
+		// 	score = memory * percentage * 0.9
+		// } else if cv <= 0.5 {
+		// 	score = memory * percentage * 1.3
+		// } else if cv <= 0.7 {
+		// 	score = memory * percentage * 1.7
+		// } else {
+		// 	score = memory * percentage * 2.1
+		// }
+
 	default:
 		panic("Unknown policy! " + policy)
 	}

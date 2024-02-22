@@ -18,6 +18,7 @@ policyList=[
     # 'maxUsage',     # 第3
     # 'maxColdStart', # 第3
     # 'score3', # 第5
+    # 'score4',
     # 'random',       # 第7
     # 'minColdStart', # 第8
     # 'lru',       # 第9
@@ -31,11 +32,15 @@ policyList2=[
     # 'maxUsage',     # 第3
     # 'maxColdStart', # 第3
     'score1', # 第4
-    'score2', # 第4
-    # 'score3', # 第5
-    'score4',
-    'score5',
-    'score6',
+    "cv",
+    # 'score2', # 第4
+    # # 'score3', # 第5
+    # 'score4',
+    # 'score5',
+    # 'score6',
+    'score7',
+    'score8',
+    'score9',
     # 'random',       # 第7
     # 'minColdStart', # 第8
     # 'lru',       # 第9
@@ -44,7 +49,7 @@ policyList2=[
 ]
 
 memoryList=[1000]
-arrivalCnt=1
+arrivalCnt=300
 
 id = 0
 if len(sys.argv) > 1:
@@ -236,7 +241,7 @@ def draw():
     #             dot100 += 1
     #     avg = sum(cdf_warmstart[file]) / len(cdf_warmstart[file])
     #     # print(label[file], avg)
-    #     # print(label[file], dot10, dot25, dot50, dot75, dot90, dot100, '\n')
+    #     print(label[file], dot10, dot25, dot50, dot75, dot90, dot100, '\n')
     #     tag = file.split('-')[1]
     #     tag = tag.split('/')[0]
     #     if tag not in policyArray:

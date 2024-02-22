@@ -18,11 +18,11 @@ keepAliveList=(5)
 
 # policyList=('lru' 'lfu' 'mru' 'random' 'maxmem' 'maxmem2' 'maxUsage' 'maxColdStart' 'minColdStart' 'score' 'score3')
 policyList=('maxmem')
-policyList2=('score1' 'score2' 'score4' 'score6')
+policyList2=('maxmem' 'cv' 'score1' 'score9' 'score8' 'score7')
 # policyList2=('lru' 'lfu' 'random' 'maxmem' 'maxUsage' 'minColdStart' 'score' 'score1' 'score2' 'score3' 'score4')
 # policyList2=('lru' 'lfu' 'mru' 'random' 'maxmem' 'maxmem2' 'maxUsage' 'maxColdStart' 'minColdStart' 'score' 'score1' 'score2' 'score3')
 
-memoryList=(1000)
+memoryList=(900)
 arrivalCnt=1
 
 cd pkg/system && go build
@@ -43,9 +43,7 @@ do
     done
     # wait
 done
-
 # wait
-
 for keepAlive in "${keepAliveList[@]}"
 do
     for policy in "${policyList2[@]}"
@@ -57,7 +55,7 @@ do
             sum=50
             leftBound=0.05
             leftBound2=0.15
-            rightBound=0.98
+            rightBound=0.85
             file="histogram/$policy/histogram-$policy-$keepAlive-$memory-$arrivalCnt"
             echo $file
             ./system $keepAlive $prewarm $memory $arrivalCnt $fixed $sum $leftBound $leftBound2 $rightBound $policy > ../output/$file.log &

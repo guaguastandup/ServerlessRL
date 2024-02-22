@@ -122,11 +122,6 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 	if s.AppContainerMap[e.app.AppID] == nil {
 		panic("impossible: nil container")
 	}
-	if !IsExistInIdleList(s.AppContainerMap[e.app.AppID]) {
-		s.AddToIdleList(s.AppContainerMap[e.app.AppID])
-		LastIdleTime[e.app.AppID] = e.getTimestamp()
-	}
-
 	if flag == 1 && e.function == nil { // 预热
 		e.app.FinishTime = e.getTimestamp() + int64(e.app.InitTime) + int64(e.app.KeepAliveTime)
 		s.addEvent(&AppFinishEvent{
@@ -167,6 +162,11 @@ func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 				container: s.AppContainerMap[e.app.AppID],
 			})
 		}
+	} else {
+		if !IsExistInIdleList(s.AppContainerMap[e.app.AppID]) { // 如果当前只是预热, 没有明确的Function, 那么就把App加入到IdleList
+			s.AddToIdleList(s.AppContainerMap[e.app.AppID])
+			LastIdleTime[e.app.AppID] = e.getTimestamp()
+		}
 	}
 }
 
@@ -176,6 +176,7 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 	}
 	if IsExistInIdleList(e.container) {
 		RemoveIdleContainer(e.container)
+
 	}
 	s.TimeRunningUsage += e.app.RunningGain
 	s.MEMRunningUsage += e.app.MemRunningGain

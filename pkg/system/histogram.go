@@ -5,8 +5,8 @@ import (
 	"sort"
 )
 
-var histogramLength int = 200
-var unit float64 = 1000 * 30
+var histogramLength int = 100
+var unit float64 = 1000 * 60
 
 var appHistogram map[string]*histogram = make(map[string]*histogram)
 var preTime map[string]int64 = make(map[string]int64)

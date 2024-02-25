@@ -14,51 +14,59 @@ cleanup() {
 }
 trap cleanup SIGINT
 
-keepAliveList=(5 10 30 60 120)
+keepAliveList=(120)
 
-# policyList=('lru' 'lfu' 'mru' 'random' 'maxmem' 'maxmem2' 'maxUsage' 'maxColdStart' 'minColdStart' 'score' 'score3')
-policyList=('maxmem')
-policyList2=('maxmem' 'cv' 'score1' 'score9' 'score8' 'score7')
-# policyList2=('lru' 'lfu' 'random' 'maxmem' 'maxUsage' 'minColdStart' 'score' 'score1' 'score2' 'score3' 'score4')
-# policyList2=('lru' 'lfu' 'mru' 'random' 'maxmem' 'maxmem2' 'maxUsage' 'maxColdStart' 'minColdStart' 'score' 'score1' 'score2' 'score3')
+policyList=('score1' 'score2' 'score3')
+# policyList=('maxmem' 'lru' 'random' 'score1' 'score2' 'score3')
+policyList2=('maxmem' 'lru' 'random' 'score1' 'score2' 'score3')
 
-memoryList=(500 1000 1500)
+memoryList=(800)
 arrivalCnt=1
 
 cd pkg/system && go build
 
 for keepAlive in "${keepAliveList[@]}"
 do
-    for policy in "${policyList[@]}"
+    for memory in "${memoryList[@]}"
     do 
-        for memory in "${memoryList[@]}"
+        for policy in "${policyList[@]}"
         do 
             fixed=1
             prewarm=0
-            file="fixed/$policy/fixed-$policy-$keepAlive-$memory-$arrivalCnt"
-            echo $file
-            ./system $keepAlive $prewarm $memory $arrivalCnt $fixed 0 0 0 0 $policy > ../output/$file.log &
+            # file name
+            dir="../output/fixed/$policy" # 设置目录路径
+            file="fixed-$policy-$keepAlive-$memory-$arrivalCnt.log" # 设置文件名
+            fullpath="$dir/$file" # 完整的文件路径
+            mkdir -p "$dir"
+            echo "$fullpath"
+            ./system $keepAlive $prewarm $memory $arrivalCnt $fixed 0 0 0 0 $policy > ../output/$fullpath &
         done
         # wait
     done
     # wait
 done
+
 wait
+
 for keepAlive in "${keepAliveList[@]}"
 do
-    for policy in "${policyList2[@]}"
-    do 
-        for memory in "${memoryList[@]}"
-        do 
+    for memory in "${memoryList[@]}"
+    do
+        for policy in "${policyList2[@]}"
+        do  
             fixed=0
             prewarm=0
             sum=30
             leftBound=0.05
             leftBound2=0.15
             rightBound=0.95
-            file="histogram/$policy/histogram-$policy-$keepAlive-$memory-$arrivalCnt"
-            echo $file
-            ./system $keepAlive $prewarm $memory $arrivalCnt $fixed $sum $leftBound $leftBound2 $rightBound $policy > ../output/$file.log &
+            # file name
+            dir="../output/histogram/$policy" # 设置目录路径
+            file="histogram-$policy-$keepAlive-$memory-$arrivalCnt.log" # 设置文件名
+            fullpath="$dir/$file" # 完整的文件路径
+            mkdir -p "$dir"
+            echo "$fullpath"
+            ./system $keepAlive $prewarm $memory $arrivalCnt $fixed $sum $leftBound $leftBound2 $rightBound $policy > ../output/$fullpath &
         done
         # wait
     done

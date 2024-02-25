@@ -24,6 +24,9 @@ var rightBound float64 = 0.95
 
 var policy string = "lru"
 
+var totalDay int = 1
+var totalMinute int = 500
+
 type Container struct {
 	ID               int64
 	App              *Application
@@ -81,7 +84,7 @@ func (s *Server) Run() {
 			fmt.Printf("Time Score: %.4f %%\n", 100.0*float64(s.TimeRunningUsage)/float64(s.TimeUsage))
 			fmt.Printf("Evicted Memory: %.1f GB\n", float64(EvictedMemory/1024.0))
 			fmt.Printf("warmStart Rate: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
-			if e.(*BatchFunctionSubmitEvent).minute%50 == 0 {
+			if e.(*BatchFunctionSubmitEvent).minute%20 == 0 {
 				sum := float64(0)
 				cnt := 0
 				for k, v := range s.appRequestCnt {
@@ -106,7 +109,7 @@ func (s *Server) Run() {
 				fmt.Printf("average mem socre: %.5f\n", sum_mem_score/float64(cnt_mem_score))
 				fmt.Printf("average time socre: %.5f\n", sum_time_score/float64(cnt_time_score))
 			}
-			if e.(*BatchFunctionSubmitEvent).minute == 1140 && e.(*BatchFunctionSubmitEvent).day == 4 {
+			if e.(*BatchFunctionSubmitEvent).minute == totalMinute && e.(*BatchFunctionSubmitEvent).day == totalDay {
 				sum_mem_score, sum_time_score := 0.0, 0.0
 				cnt_mem_score, cnt_time_score := 0, 0
 				for k, v := range AppMemUsage {
@@ -195,8 +198,8 @@ func main() {
 		appRequestCnt:   make(map[string]int),
 	}
 
-	for day := 1; day <= 4; day++ {
-		for i := 0; i < 1140; i++ {
+	for day := 1; day <= totalDay; day++ {
+		for i := 0; i < totalMinute; i++ {
 			Server.addEvent(&BatchFunctionSubmitEvent{
 				baseEvent: baseEvent{
 					id:        Server.newEventId(),

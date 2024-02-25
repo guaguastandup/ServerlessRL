@@ -10,20 +10,9 @@ avg_coldstart, avg_mem_score, avg_time_score = {}, {}, {}
 
 logPath = []
 
-keepAliveList=[120, 10]
+keepAliveList=[10, 15, 120]
 policyList=[
     'maxmem',    # 第1
-    'lru',
-    'random',
-    'score1',
-    'score2',
-    'score3',
-    'score4',
-    'score5',
-    'score6',
-]
-policyList2=[
-    # 'maxmem',    # 第1
     # 'lru',
     # 'random',
     # 'score1',
@@ -33,8 +22,19 @@ policyList2=[
     # 'score5',
     # 'score6',
 ]
+policyList2=[
+    'maxmem',    # 第1
+    # 'lru',
+    # 'random',
+    'score1',
+    'score2',
+    'score3',
+    'score4',
+    'score5',
+    # 'score6',
+]
 
-memoryList=[800, 1000]
+memoryList=[1000, 800, 1250]
 arrivalCnt=1
 
 id = 0
@@ -164,12 +164,13 @@ def statistics():
         print(label[file], dot10, dot25, dot50, dot75, dot90, dot100, '\n')
 
 def draw_score():
-    plt.figure(figsize=(20, 30))
-    plt.rcParams.update({'font.size': 20})
+    plt.figure(figsize=(15, 25))
+    plt.rcParams.update({'font.size': 30})
     minlen = 1000000000
     for i in range(len(logPath)):
-        plt.plot(avg_coldstart[logPath[i]], label=label[logPath[i]])
+        plt.plot(avg_coldstart[logPath[i]], label=label[logPath[i]], linewidth=2)
         minlen = min(minlen, len(avg_coldstart[logPath[i]]))
+    print("minlen: ", minlen)
     for i in range(len(logPath)):
         print(logPath[i], avg_coldstart[logPath[i]][minlen-1])
     plt.legend(loc='upper left')

@@ -24,8 +24,8 @@ var rightBound float64 = 0.95
 
 var policy string = "lru"
 
-var totalDay int = 1
-var totalMinute int = 500
+var totalDay int = 12
+var totalMinute int = 1140
 
 type Container struct {
 	ID               int64

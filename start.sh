@@ -14,13 +14,11 @@ cleanup() {
 }
 trap cleanup SIGINT
 
-keepAliveList=(120)
-
-policyList=('score1' 'score2' 'score3')
-# policyList=('maxmem' 'lru' 'random' 'score1' 'score2' 'score3')
-policyList2=('maxmem' 'lru' 'random' 'score1' 'score2' 'score3')
-
-memoryList=(800)
+keepAliveList=(10)
+# policyList=('maxmem' 'score1' 'score2' 'score3')
+policyList=('maxmem')
+policyList2=('maxmem' 'score1' 'score2' 'score3' 'score4' 'score5')
+memoryList=(1000)
 arrivalCnt=1
 
 cd pkg/system && go build
@@ -46,7 +44,7 @@ do
     # wait
 done
 
-wait
+# wait
 
 for keepAlive in "${keepAliveList[@]}"
 do
@@ -56,7 +54,7 @@ do
         do  
             fixed=0
             prewarm=0
-            sum=30
+            sum=10
             leftBound=0.05
             leftBound2=0.15
             rightBound=0.95

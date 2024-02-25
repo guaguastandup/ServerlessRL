@@ -191,12 +191,6 @@ func (s *Server) handleAppFinishEvent(e *AppFinishEvent) { // 销毁容器
 	s.totalMemUsing -= int64(e.app.MEMResources)
 
 	delete(s.AppContainerMap, e.app.AppID)
-	// if e.app.KeepAliveTime/int(unit) != 5 {
-	// 	fmt.Println("KeepAliveTime: ", e.app.KeepAliveTime/int(unit))
-	// }
-	// if e.app.PreWarmTime/int(unit) != 0 {
-	// 	fmt.Println("PreWarmTime: ", e.app.PreWarmTime/int(unit))
-	// }
 	if e.app.PreWarmTime > 0 {
 		s.addEvent(&AppInitEvent{
 			baseEvent: baseEvent{

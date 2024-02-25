@@ -56,6 +56,8 @@ var ColdStartTimeMap map[string]int = make(map[string]int)                  // a
 var AppFuncCntMap map[string]int = make(map[string]int)                     // appID -> function cnt
 var ColdStartCntMap map[string]int = make(map[string]int)
 
+var NewMemoryMap map[string]int = make(map[string]int) // appID
+
 func initMap() {
 	MemoryMap = make(map[string]int)
 	MemoryFuncMap = make(map[string]int)
@@ -115,6 +117,7 @@ func ParseMemory(day int) {
 
 	ParseAppFuncCnt(day)
 
+	maxMemory := 0
 	for i := 1; i < len(allRecords); i++ {
 		appID := allRecords[i][0]
 		memory, err := strconv.Atoi(allRecords[i][1])
@@ -123,10 +126,14 @@ func ParseMemory(day int) {
 			panic(err)
 		}
 		MemoryMap[appID] = memory
+		if memory > maxMemory {
+			maxMemory = memory
+		}
 	}
 	for k, v := range MemoryMap {
 		MemoryFuncMap[k] = v / AppFuncCntMap[k]
 	}
+	fmt.Println("maxMemory: ", maxMemory)
 }
 
 func ParseDuration(day int) {

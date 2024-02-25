@@ -12,7 +12,7 @@ logPath = []
 
 keepAliveList=[10, 15, 120]
 policyList=[
-    'maxmem',    # 第1
+    # 'maxmem',    # 第1
     # 'lru',
     # 'random',
     # 'score1',
@@ -28,9 +28,9 @@ policyList2=[
     # 'random',
     'score1',
     'score2',
-    'score3',
-    'score4',
-    'score5',
+    # 'score3',
+    # 'score4',
+    # 'score5',
     # 'score6',
 ]
 

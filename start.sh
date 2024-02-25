@@ -15,9 +15,10 @@ cleanup() {
 trap cleanup SIGINT
 
 keepAliveList=(10)
-# policyList=('maxmem' 'score1' 'score2' 'score3')
-policyList=('maxmem')
-policyList2=('maxmem' 'score1' 'score2' 'score3' 'score4' 'score5')
+policyList=()
+policyList2=('score2')
+# policyList=('maxmem')
+# policyList2=('maxmem' 'score1' 'score2')
 memoryList=(1000)
 arrivalCnt=1
 

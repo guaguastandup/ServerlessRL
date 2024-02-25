@@ -104,7 +104,7 @@ func getPercentage(appID string, time int64) float64 {
 		return 0
 	}
 
-	percentage := 0.0
+	percentage := float64(0.0)
 	nonZeroIndexes := appHistogram[appID].nonZeroIndexes
 	array := appHistogram[appID].array
 
@@ -115,7 +115,7 @@ func getPercentage(appID string, time int64) float64 {
 			break
 		}
 	}
-	return percentage / float64(sum)
+	return float64(percentage) / float64(sum)
 }
 
 // 计算变异性系数

@@ -8,6 +8,8 @@ import (
 var ContainerIdleList *list.List = list.New()
 var ContainerIdleMap map[int64]*list.Element = make(map[int64]*list.Element) // delete by container id
 
+var frequencyMap map[string]int = make(map[string]int)
+
 func RemoveIdleContainer(container *Container) {
 	id := container.ID
 	nodeToDelete, exists := ContainerIdleMap[id]
@@ -15,7 +17,7 @@ func RemoveIdleContainer(container *Container) {
 		ContainerIdleList.Remove(nodeToDelete) // 从链表中删除该节点
 		delete(ContainerIdleMap, id)           // 从映射中删除该节点的指针
 		h.RemoveByID(id)
-		totalFrequency -= int64(IntervalCnt[container.App.AppID])
+		totalFrequency -= int64(frequencyMap[container.App.AppID])
 	} else {
 		fmt.Println(len(ContainerIdleMap), ContainerIdleList.Len())
 		fmt.Println(container.ID)
@@ -31,7 +33,7 @@ func (s *Server) AddToIdleList(container *Container) {
 	ContainerIdleMap[container.ID] = ele
 	container.App.Score = s.getScore(container.App.AppID, s.currTime)
 	h.Push(container)
-	totalFrequency += int64(IntervalCnt[container.App.AppID])
+	totalFrequency += int64(frequencyMap[container.App.AppID])
 }
 
 func IsExistInIdleList(container *Container) bool {

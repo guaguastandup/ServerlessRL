@@ -7,22 +7,33 @@ mem_score, time_score = {}, {}
 warm_start_rate, cdf_warmstart = {}, {}
 app_mem_score, app_time_score = {}, {}
 avg_coldstart, avg_mem_score, avg_time_score = {}, {}, {}
-keepAliveList=[15]
+warm_start, timeCost, memCost = {}, {}, {}
+keepAliveList=[10]
 policyList=[
-    'maxmem', 
     # 'lru',
+    # 'lfu',
     # 'random',
-    'score5',
-
+    'maxmem', 
+    'score1',
+    # 'score2',
+    # 'score3', 
+    'score4',
+    # "ideal",
 ]
 policyList2=[
-    'maxmem', 
     # 'lru',
+    # 'lfu',
     # 'random',
-    'score5',
+    'maxmem', 
+    'score1',
+    # 'score2',
+    # 'score3', 
+    'score4',
+    # "ideal",
 ]
 
-memoryList=[200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
+memoryList=[400, 800, 1200, 1600]
+# memoryList=[200, 400, 600, 800, 1000, 1200]
 arrivalCnt=1
 id = 0
 
@@ -108,7 +119,6 @@ def draw_cdf():
     plt.savefig(f"./pkg/result/cdf_multi-{str(id)}.png")
     plt.close()
 
-
 def statistics():
     for file in logPath:
         dot10, dot25, dot50, dot75, dot90, dot100 = 0, 0, 0, 0, 0, 0
@@ -133,12 +143,21 @@ def draw_score():
     plt.figure(figsize=(15, 25))
     plt.rcParams.update({'font.size': 30})
     minlen = 1000000000
+    h_m = 0
     for i in range(len(logPath)):
         plt.plot(avg_coldstart[logPath[i]], label=label[logPath[i]], linewidth=2)
         minlen = min(minlen, len(avg_coldstart[logPath[i]]))
     print("minlen: ", minlen)
+    best = ''
+    best_val = 100000
     for i in range(len(logPath)):
+        if 'his' in logPath[i] and 'maxmem' in logPath[i]:
+            h_m = avg_coldstart[logPath[i]][minlen-1]
+        if best_val > avg_coldstart[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
+            best = label[logPath[i]]
+            best_val = avg_coldstart[logPath[i]][minlen-1]
         print(logPath[i], avg_coldstart[logPath[i]][minlen-1])
+    print("\nbest coldstart rate: ", best, best_val, "decrease: ", 100.0 * (h_m - best_val)/h_m, "%")
     plt.legend(loc='upper left')
     plt.title('Average ColdStart Rate')
     plt.xlabel('Minute')
@@ -147,6 +166,86 @@ def draw_score():
     plt.tight_layout()
     plt.savefig(f"./pkg/result/multi-score-{str(id)}.png")
     plt.close()
+    
+def draw_warmstart():
+    plt.figure(figsize=(15, 25))
+    plt.rcParams.update({'font.size': 30})
+    minlen = 1000000000
+    h_m = 0
+    for i in range(len(logPath)):
+        plt.plot(warm_start[logPath[i]], label=label[logPath[i]], linewidth=2)
+        minlen = min(minlen, len(warm_start[logPath[i]]))
+    print("minlen: ", minlen)
+    best = ''
+    best_val = 0
+    for i in range(len(logPath)):
+        if 'his' in logPath[i] and 'maxmem' in logPath[i]:
+            h_m = warm_start[logPath[i]][minlen-1]
+        if best_val < warm_start[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
+            best = label[logPath[i]]
+            best_val = warm_start[logPath[i]][minlen-1]
+        print(logPath[i], warm_start[logPath[i]][minlen-1])
+    print("\nbest warmstart rate: ", best, best_val, "increase: ", 100.0 * (best_val - h_m)/h_m, "%")
+    plt.legend(loc='upper left')
+    plt.title('total warmstart Rate')
+    plt.xlabel('Minute')
+    plt.ylabel('warmstart Rate')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(f"./pkg/result/multi-warmstart-{str(id)}.png")
+    plt.close()    
+
+def draw_cost():
+    plt.figure(figsize=(15, 25))
+    plt.rcParams.update({'font.size': 30})
+    plt.subplot(2, 1, 1)
+    minlen = 1000000000
+    h_m = 0
+    for i in range(len(logPath)):
+        plt.plot(timeCost[logPath[i]], label=label[logPath[i]], linewidth=2)
+        minlen = min(minlen, len(timeCost[logPath[i]]))
+    print("minlen: ", minlen)
+    best = ''
+    best_val = 1000000000000
+    for i in range(len(logPath)):
+        if 'his' in logPath[i] and 'maxmem' in logPath[i]:
+            h_m = timeCost[logPath[i]][minlen-1]
+        if best_val > timeCost[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
+            best = label[logPath[i]]
+            best_val = timeCost[logPath[i]][minlen-1]
+        print(logPath[i], timeCost[logPath[i]][minlen-1])
+    print("\nbest timecost: ", best, best_val, "decrease: ", 100.0 * (h_m - best_val)/h_m, "%")
+    plt.legend(loc='upper left')
+    plt.title('total timecost')
+    plt.xlabel('xxx')
+    plt.ylabel('timecost Rate')
+    
+    # plt.subplot(2, 1, 2)
+    # minlen = 1000000000
+    # for i in range(len(logPath)):
+    #     plt.plot(memCost[logPath[i]], label=label[logPath[i]], linewidth=2)
+    #     minlen = min(minlen, len(memCost[logPath[i]]))
+    # print("minlen: ", minlen)
+    # best = ''
+    # best_val = 1000000000000
+    # h_m = 0
+    # for i in range(len(logPath)):
+    #     if 'his' in logPath[i] and 'maxmem' in logPath[i]:
+    #         h_m = memCost[logPath[i]][minlen-1]
+    #     if best_val > memCost[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
+    #         best = label[logPath[i]]
+    #         best_val = memCost[logPath[i]][minlen-1]
+    #     print(logPath[i], memCost[logPath[i]][minlen-1])
+    # print("\nbest memcost: ", best, best_val, "decrease: ", 100.0 * (h_m - best_val)/h_m, "%")
+    # plt.legend(loc='upper left')
+    # plt.title('total memcost')
+    # plt.xlabel('xxx')
+    # plt.ylabel('memcost Rate')
+    
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.savefig(f"./pkg/result/multi-cost-{str(id)}.png")
+    # plt.close() 
     
 def draw_score1():
     plt.figure(figsize=(20, 30))
@@ -176,6 +275,9 @@ def read():
             avg_coldstart[logPath[i]] = []
             avg_mem_score[logPath[i]] = []
             avg_time_score[logPath[i]] = []
+            warm_start[logPath[i]] = []
+            memCost[logPath[i]] = []
+            timeCost[logPath[i]] = []
             for line in file:
                 if 'Inf' in line or 'NaN' in line:
                     continue
@@ -201,7 +303,12 @@ def read():
                     avg_mem_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
                 elif line.startswith('average time socre'):
                     avg_time_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-    
+                elif line.startswith('warmstart'):
+                    warm_start[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
+                elif line.startswith('total coldstartTimeCost'):
+                    timeCost[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
+                elif line.startswith('total coldstartMemCost'):
+                    memCost[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
 for i in range(len(memoryList)):
     logPath = []
     label = {}
@@ -209,11 +316,17 @@ for i in range(len(memoryList)):
     for k in keepAliveList[0:1]:
         for p in policyList:
             for m in memoryList[i:i+1]:
-                logPath.append('fixed/' + p + '/fixed-' + p + '-' + str(k) + '-' +str(m) + '-' + str(arrivalCnt))
+                if "ideal" in p:
+                    logPath.append('fixed/' + p + '/fixed-' + p + '-' + str(k) + '-' + str(100000) + '-' + str(arrivalCnt))
+                else:
+                    logPath.append('fixed/' + p + '/fixed-' + p + '-' + str(k) + '-' +str(m) + '-' + str(arrivalCnt))
     for k in keepAliveList[0:1]:
         for p in policyList2:
             for m in memoryList[i:i+1]:
-                logPath.append('histogram/' + p + '/histogram-' + p + '-' + str(k) + '-' + str(m) + '-' + str(arrivalCnt))
+                if "ideal" in p:
+                    logPath.append('histogram/' + p + '/histogram-' + p + '-' + str(k) + '-' + str(100000) + '-' + str(arrivalCnt))
+                else:
+                    logPath.append('histogram/' + p + '/histogram-' + p + '-' + str(k) + '-' + str(m) + '-' + str(arrivalCnt))
     for path in logPath:
         type = path.split('/')[0]
         policy = path.split('/')[1]
@@ -222,5 +335,8 @@ for i in range(len(memoryList)):
         label[path] = type + '-' + policy + '-' + keepAlive + '-' + memory
     read()
     draw_score()
-    draw()
+    draw_cost()
+    draw_warmstart()
+    print("-----------------------------------------------------------")
+    # draw()
     # draw_score1()

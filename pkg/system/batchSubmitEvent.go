@@ -23,8 +23,6 @@ func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 		preMinTime[k] = v
 	}
 
-	var visitMap map[string]bool = make(map[string]bool)
-
 	//! batchFunctionSubmit -> functionSubmit
 	for _, req := range requests {
 		if appHistogram[req.AppID] == nil {
@@ -34,18 +32,15 @@ func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 			}
 		}
 		if preMinTime[req.AppID] != 0 {
-			if !visitMap[req.AppID] {
-				visitMap[req.AppID] = true
-				interval := float64(req.ArrivalTime - preMinTime[req.AppID])
-				if interval < 0 {
-					interval = 0
-				}
-				if interval >= 0 {
-					interval_min := int(math.Ceil(interval / unit))
-					updateHistogram(req.AppID, interval_min)
-					IntervalSum[req.AppID] += interval
-					IntervalCnt[req.AppID] += 1
-				}
+			interval := float64(req.ArrivalTime - preMinTime[req.AppID])
+			if interval < 0 {
+				interval = 0
+			}
+			if interval > 0 {
+				interval_min := int(math.Ceil(interval / unit))
+				updateHistogram(req.AppID, interval_min)
+				IntervalSum[req.AppID] += interval
+				IntervalCnt[req.AppID] += 1
 			}
 		}
 		preTime[req.AppID] = req.ArrivalTime

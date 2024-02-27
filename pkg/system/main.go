@@ -22,7 +22,7 @@ var leftBound float64 = 0.05
 var leftBound2 float64 = 0.1
 var rightBound float64 = 0.95
 var policy string = "lru"
-var totalDay int = 8
+var totalDay int = 10
 var totalMinute int = 1140
 
 type Container struct {
@@ -63,9 +63,9 @@ func (s *Server) Run() {
 	heap.Init(h) // 初始化堆
 	start := time.Now()
 	startTime := time.Now()
-	cnt := 0
+	tot := 0
 	for s.EventQueue.Len() > 0 {
-		cnt += 1
+		tot += 1
 		e := heap.Pop(&s.EventQueue).(event)
 		if e.getTimestamp() < s.currTime {
 			e.log()
@@ -75,7 +75,7 @@ func (s *Server) Run() {
 		s.currTime = e.getTimestamp()
 		if e.String() == "BatchFunctionSubmitEvent" {
 			fmt.Println("time cost: ", time.Since(startTime).Seconds())
-			fmt.Println("Event Count: ", cnt)
+			fmt.Println("Event Count: ", tot)
 			fmt.Printf("MemOccupyingUsage: %.1f GB\n", float64(s.totalMemUsing/1024.0))
 			fmt.Printf("MEMRunningUsage: %.1f GB\n", float64(s.totalMemRunning/1024.0))
 			fmt.Printf("Mem Score: %.4f %%\n", 100.0*float64(s.MEMRunningUsage)/float64(s.MemUsage))
@@ -90,9 +90,11 @@ func (s *Server) Run() {
 					cnt += 1
 				}
 				fmt.Printf("app average coldstart rate: %.4f %%\n", float64(sum)/float64(cnt))
+				fmt.Printf("total coldstartTimeCost: %.4f\n", float64(coldStartTimeCost)/float64(1000.0))
+				fmt.Printf("total coldstartMemCost: %.4f\n", float64(coldStartMemCost)/float64(1000.0))
+				fmt.Printf("warmstart: %.4f %%\n\n", 100.0*float64(s.warmStartCnt)/float64(s.totalRequest))
 			}
 			startTime = time.Now()
-			cnt = 0
 			if e.(*BatchFunctionSubmitEvent).minute%100 == 0 {
 				sum_mem_score, sum_time_score := 0.0, 0.0
 				cnt_mem_score, cnt_time_score := 0, 0

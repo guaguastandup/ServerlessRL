@@ -14,11 +14,13 @@ cleanup() {
 }
 trap cleanup SIGINT
 
-keepAliveList=(15)
-policyList=('maxmem' 'score5')
-policyList2=('maxmem' 'score5')
-memoryList=(200 300 400 500 600 700 800 900 1000 1100 1200)
+keepAliveList=(10)
+
+policyList=('score2' 'score3')
+policyList2=('score2' 'score3')
+memoryList=(400 800 1200 1600)
 arrivalCnt=1
+
 cd pkg/system && go build
 for keepAlive in "${keepAliveList[@]}"
 do

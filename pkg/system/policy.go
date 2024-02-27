@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/heap"
+	"math"
 	"math/rand"
 )
 
@@ -21,7 +22,7 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 		}
 		cnt += 1
 	}
-	for s.totalMemUsing+3*1024 > s.MEMCapacity {
+	for s.totalMemUsing+1*1024 > s.MEMCapacity {
 		if ContainerIdleList.Len() == 0 {
 			break
 		}
@@ -31,6 +32,8 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 			container = FrontElement()
 		case "mru":
 			container = BackElement()
+		case "ideal":
+			container = FrontElement()
 		default:
 			container = heap.Pop(h).(*Container)
 		}
@@ -57,45 +60,57 @@ func (s *Server) getScore(appID string, timestamp int64) float64 {
 		break
 	case "mru":
 		break
+	case "ideal":
+		break
 	case "lfu":
 		score = -float64(s.appRequestCnt[appID])
 	case "random":
 		score = float64(rand.Intn(10000))
 	case "maxmem":
 		score = float64(MemoryMap[appID])
-	case "score1": // best
+	case "score1":
 		interval := int64(s.currTime - LastIdleTime[appID])
 		percentage := getPercentage(appID, interval)
 		memory := float64(MemoryMap[appID])
-		score = memory + percentage*100.0
-	case "score2":
-		// lfu:
-		interval := int64(s.currTime - LastIdleTime[appID])
-		percentage := getPercentage(appID, interval)
-		memory := float64(MemoryMap[appID])
-		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
-		score = memory + percentage*80.0 - frequency*200.0
-	case "score3":
-		// lfu:
-		interval := int64(s.currTime - LastIdleTime[appID])
-		percentage := getPercentage(appID, interval)
-		memory := float64(MemoryMap[appID])
-		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
-		score = memory + percentage*100.0 - frequency*100.0
-	case "score4":
-		// lfu:
-		interval := int64(s.currTime - LastIdleTime[appID])
-		percentage := getPercentage(appID, interval)
-		memory := float64(MemoryMap[appID])
-		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
-		score = memory + percentage*50.0 - frequency*300.0
-	case "score5":
-		// lfu:
-		interval := int64(s.currTime - LastIdleTime[appID])
-		percentage := getPercentage(appID, interval)
-		memory := float64(MemoryMap[appID])
-		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
+		frequency := float64(frequencyMap[appID]) / float64(totalFrequency)
 		score = 1.5*memory + percentage*50.0 - frequency*500.0
+	case "score2":
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval) * 100.0
+		memory := float64(MemoryMap[appID])
+		frequency := float64(frequencyMap[appID]) / float64(totalFrequency) * 100.0
+		if memory <= 25 {
+			score = 2.0*memory + percentage*1.5 - frequency*2.0
+		} else if memory <= 50 {
+			score = 1.5*memory + percentage*1.25 - frequency*3.0
+		} else if memory <= 100 {
+			score = 1.0*memory + percentage*1.0 - frequency*4.0
+		} else if memory <= 150 {
+			score = 1.0*memory + percentage*0.75 - frequency*5.0
+		} else {
+			score = 1.0*memory + percentage*0.5 - frequency*6.0
+		}
+	case "score3":
+		score = -float64(ColdStartTimeMap[appID])*float64(MemoryMap[appID]) - float64(frequencyMap[appID])*100.0
+	case "score4":
+		// conbime score1 and score3
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval)
+		memory := float64(MemoryMap[appID])
+		frequency := float64(frequencyMap[appID]) / float64(totalFrequency)
+		if memory <= 25 {
+			score = 2.0*memory + percentage*1.5 - frequency*2.0
+		} else if memory <= 50 {
+			score = 1.5*memory + percentage*1.25 - frequency*3.0
+		} else if memory <= 100 {
+			score = 1.0*memory + percentage*1.0 - frequency*4.0
+		} else if memory <= 150 {
+			score = 1.0*memory + percentage*0.75 - frequency*5.0
+		} else {
+			score = 1.0*memory + percentage*0.5 - frequency*6.0
+		}
+		memcost := float64(ColdStartTimeMap[appID]) * float64(MemoryMap[appID])
+		score -= math.Pow(memcost, 0.25) / 100.0
 	default:
 		panic("Unknown policy! " + policy)
 	}

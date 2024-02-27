@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
-	"math/rand"
 	"os"
 	"sort"
 	"strconv"
@@ -224,22 +223,20 @@ func ParseRequests(day int, minute int) []*Request {
 			arrivalCnt = float64(ArricalCnt)
 		}
 		interval := int((60 * 1000) / arrivalCnt)
-
 		ColdStartTimeMap[functionID] = ColdStartTimeMap[appID]
 		MemoryFuncMap[functionID] = MemoryFuncMap[appID]
 		MemoryMap[functionID] = MemoryFuncMap[functionID]
-
 		for j := 0; j < int(arrivalCnt); j++ {
 			request := Request{
-				ID: NewRequestID(),
-				// AppID:        appID,
+				// ID:    NewRequestID(),
+				// AppID: appID,
 				AppID:        functionID,
 				FuncID:       functionID,
 				FuncType:     FunctionTypeMap[functionType],
 				ArrivalTime:  int64(1140*day*Minute + 60*1000*minute + interval*j),
-				RunTime:      int(float64(DurationMap[appID][functionID]) * (0.90 + float64(rand.Intn(30))/100.0)),
+				RunTime:      int(float64(DurationMap[appID][functionID])),
 				LoadTime:     int(float64(ColdStartTimeMap[appID]) * 1.5),
-				MEMResources: float64(MemoryFuncMap[functionID]),
+				MEMResources: float64(MemoryMap[functionID]),
 			}
 			if request.RunTime < 0 {
 				continue

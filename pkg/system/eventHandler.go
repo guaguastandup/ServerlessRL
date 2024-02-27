@@ -11,6 +11,9 @@ var LastIdleTime map[string]int64 = make(map[string]int64) // appID -> last idle
 
 var KeepAliveTimeMap map[string]int = make(map[string]int) // appID -> keep alive time
 
+var coldStartMemCost float64 = 0
+var coldStartTimeCost float64 = 0
+
 func (s *Server) handleFuncStartEvent(e *FunctionStartEvent) {
 	if IsExistInIdleList(e.container) {
 		RemoveIdleContainer(e.container)
@@ -100,6 +103,10 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 
 func (s *Server) handleAppInitEvent(e *AppInitEvent) { // 冷启动
 	flag := 0
+	if e.function != nil {
+		coldStartMemCost += float64(e.app.InitTime) * float64(e.app.MEMResources) / (1024.0 * 1000.0)
+		coldStartTimeCost += float64(e.app.InitTime) / 1000.0
+	}
 	if s.AppContainerMap[e.app.AppID] == nil {
 		s.totalMemUsing += int64(e.app.MEMResources)
 		if s.totalMemUsing > s.MEMCapacity { // Memory Overload
@@ -222,6 +229,7 @@ func (s *Server) handleFuncSubmitEvent(e *FunctionSubmitEvent) {
 	appMemory := MemoryMap[appID]
 
 	s.appRequestCnt[appID] += 1
+	frequencyMap[appID] += 1
 	s.totalRequest += 1
 
 	if s.AppContainerMap[appID] != nil { // warm start

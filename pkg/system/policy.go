@@ -2,12 +2,15 @@ package main
 
 import (
 	"container/heap"
+	"math"
 	"math/rand"
 )
 
 var EvictedMemory int64 = 0
 
 var h *IdleContainerHeap = &IdleContainerHeap{}
+
+var totalFrequency int64 = 0
 
 func (s *Server) handleEvictEvent(e *baseEvent) {
 	cnt := 0
@@ -65,9 +68,21 @@ func (s *Server) getScore(appID string, timestamp int64) float64 {
 		interval := int64(s.currTime - LastIdleTime[appID])
 		percentage := getPercentage(appID, interval)
 		memory := float64(MemoryMap[appID])
-		score = memory + percentage*100
+		score = memory + percentage*100.0
 	case "score2":
-
+		// lfu:
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval)
+		memory := float64(MemoryMap[appID])
+		frequency := math.Pow(float64(IntervalCnt[appID]+1), 0.5)
+		score = (memory + percentage*100.0) / frequency
+	case "score3":
+		// lfu:
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval)
+		memory := float64(MemoryMap[appID])
+		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
+		score = memory + percentage*100.0 - frequency*100.0
 	default:
 		panic("Unknown policy! " + policy)
 	}

@@ -10,10 +10,10 @@ avg_coldstart, avg_mem_score, avg_time_score = {}, {}, {}
 
 logPath = []
 
-keepAliveList=[10, 15, 120]
+keepAliveList=[15]
 policyList=[
-    # 'maxmem',    # 第1
-    # 'lru',
+    'maxmem',    # 第1
+    'lru',
     # 'random',
     # 'score1',
     # 'score2',
@@ -24,17 +24,17 @@ policyList=[
 ]
 policyList2=[
     'maxmem',    # 第1
-    # 'lru',
+    'lru',
     # 'random',
     'score1',
-    'score2',
+    # 'score2',
     # 'score3',
     # 'score4',
     # 'score5',
     # 'score6',
 ]
 
-memoryList=[1000, 800, 1250]
+memoryList=[1200]
 arrivalCnt=1
 
 id = 0

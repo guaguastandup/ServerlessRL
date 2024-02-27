@@ -15,14 +15,11 @@ cleanup() {
 trap cleanup SIGINT
 
 keepAliveList=(15)
-policyList=()
-# policyList2=('score5')
-policyList2=('maxmem')
-memoryList=(200 300 400 600 800 1000)
+policyList=('maxmem' 'score5')
+policyList2=('maxmem' 'score5')
+memoryList=(200 300 400 500 600 700 800 900 1000 1100 1200)
 arrivalCnt=1
-
 cd pkg/system && go build
-
 for keepAlive in "${keepAliveList[@]}"
 do
     for memory in "${memoryList[@]}"
@@ -43,9 +40,7 @@ do
     done
     # wait
 done
-
 # wait
-
 for keepAlive in "${keepAliveList[@]}"
 do
     for memory in "${memoryList[@]}"
@@ -54,7 +49,7 @@ do
         do  
             fixed=0
             prewarm=0
-            sum=10
+            sum=20
             leftBound=0.05
             leftBound2=0.15
             rightBound=0.95
@@ -70,8 +65,5 @@ do
     done
     # wait
 done
-
 wait
-
-# 所有后台进程完成后执行的命令
 cd ../.. && ./draw.sh

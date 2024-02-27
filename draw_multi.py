@@ -9,22 +9,16 @@ app_mem_score, app_time_score = {}, {}
 avg_coldstart, avg_mem_score, avg_time_score = {}, {}, {}
 keepAliveList=[15]
 policyList=[
-    # 'maxmem',    # 第1
+    'maxmem', 
     # 'lru',
     # 'random',
-    # 'score1',
-    # 'score2',
-    # 'score3',
-    # 'score4',
+    'score5',
+
 ]
 policyList2=[
-    'maxmem',    # 第1
+    'maxmem', 
     # 'lru',
     # 'random',
-    # 'score1',
-    # 'score2',
-    # 'score3',
-    # 'score4',
     'score5',
 ]
 
@@ -228,4 +222,5 @@ for i in range(len(memoryList)):
         label[path] = type + '-' + policy + '-' + keepAlive + '-' + memory
     read()
     draw_score()
+    draw()
     # draw_score1()

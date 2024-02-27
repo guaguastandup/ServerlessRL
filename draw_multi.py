@@ -7,58 +7,30 @@ mem_score, time_score = {}, {}
 warm_start_rate, cdf_warmstart = {}, {}
 app_mem_score, app_time_score = {}, {}
 avg_coldstart, avg_mem_score, avg_time_score = {}, {}, {}
-
-logPath = []
-
 keepAliveList=[15]
 policyList=[
-    'maxmem',    # 第1
-    'lru',
+    # 'maxmem',    # 第1
+    # 'lru',
     # 'random',
     # 'score1',
     # 'score2',
     # 'score3',
     # 'score4',
-    # 'score5',
-    # 'score6',
 ]
 policyList2=[
     'maxmem',    # 第1
-    'lru',
+    # 'lru',
     # 'random',
-    'score1',
+    # 'score1',
     # 'score2',
     # 'score3',
     # 'score4',
-    # 'score5',
-    # 'score6',
+    'score5',
 ]
 
-memoryList=[1200]
+memoryList=[200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100]
 arrivalCnt=1
-
 id = 0
-if len(sys.argv) > 1:
-    id = int(sys.argv[1])
-    
-label = {}
-
-for k in keepAliveList[0:1]:
-    for p in policyList:
-        for m in memoryList[0:1]:
-            logPath.append('fixed/' + p + '/fixed-' + p + '-' + str(k) + '-' +str(m) + '-' + str(arrivalCnt))
-
-for k in keepAliveList[0:1]:
-    for p in policyList2:
-        for m in memoryList[0:1]:
-            logPath.append('histogram/' + p + '/histogram-' + p + '-' + str(k) + '-' + str(m) + '-' + str(arrivalCnt))
-                        
-for path in logPath:
-    type = path.split('/')[0]
-    policy = path.split('/')[1]
-    keepAlive = path.split('-')[2]
-    memory = path.split('-')[3]
-    label[path] = type + '-' + policy + '-' + keepAlive + '-' + memory
 
 def draw():
     plt.rcParams.update({'font.size': 15})
@@ -235,6 +207,25 @@ def read():
                     avg_mem_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
                 elif line.startswith('average time socre'):
                     avg_time_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                    
-read()
-draw_score()
+    
+for i in range(len(memoryList)):
+    logPath = []
+    label = {}
+    id = memoryList[i]
+    for k in keepAliveList[0:1]:
+        for p in policyList:
+            for m in memoryList[i:i+1]:
+                logPath.append('fixed/' + p + '/fixed-' + p + '-' + str(k) + '-' +str(m) + '-' + str(arrivalCnt))
+    for k in keepAliveList[0:1]:
+        for p in policyList2:
+            for m in memoryList[i:i+1]:
+                logPath.append('histogram/' + p + '/histogram-' + p + '-' + str(k) + '-' + str(m) + '-' + str(arrivalCnt))
+    for path in logPath:
+        type = path.split('/')[0]
+        policy = path.split('/')[1]
+        keepAlive = path.split('-')[2]
+        memory = path.split('-')[3]
+        label[path] = type + '-' + policy + '-' + keepAlive + '-' + memory
+    read()
+    draw_score()
+    # draw_score1()

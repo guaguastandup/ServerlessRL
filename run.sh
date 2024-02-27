@@ -15,11 +15,10 @@ cleanup() {
 trap cleanup SIGINT
 
 keepAliveList=(15)
-# policyList=('maxmem' 'score1' 'lru')
-# policyList2=('maxmem' 'score1' 'lru')
-policyList=('score2' 'score3')
-policyList2=('score2' 'score3')
-memoryList=(600 700 800 900 1000 1100 1200)
+policyList=()
+# policyList2=('score5')
+policyList2=('maxmem')
+memoryList=(200 300 400 600 800 1000)
 arrivalCnt=1
 
 cd pkg/system && go build

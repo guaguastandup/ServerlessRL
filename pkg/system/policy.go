@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/heap"
-	"math"
 	"math/rand"
 )
 
@@ -22,7 +21,7 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 		}
 		cnt += 1
 	}
-	for s.totalMemUsing+5*1024 > s.MEMCapacity {
+	for s.totalMemUsing+3*1024 > s.MEMCapacity {
 		if ContainerIdleList.Len() == 0 {
 			break
 		}
@@ -74,8 +73,8 @@ func (s *Server) getScore(appID string, timestamp int64) float64 {
 		interval := int64(s.currTime - LastIdleTime[appID])
 		percentage := getPercentage(appID, interval)
 		memory := float64(MemoryMap[appID])
-		frequency := math.Pow(float64(IntervalCnt[appID]+1), 0.5)
-		score = (memory + percentage*100.0) / frequency
+		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
+		score = memory + percentage*80.0 - frequency*200.0
 	case "score3":
 		// lfu:
 		interval := int64(s.currTime - LastIdleTime[appID])
@@ -83,6 +82,20 @@ func (s *Server) getScore(appID string, timestamp int64) float64 {
 		memory := float64(MemoryMap[appID])
 		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
 		score = memory + percentage*100.0 - frequency*100.0
+	case "score4":
+		// lfu:
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval)
+		memory := float64(MemoryMap[appID])
+		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
+		score = memory + percentage*50.0 - frequency*300.0
+	case "score5":
+		// lfu:
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval)
+		memory := float64(MemoryMap[appID])
+		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
+		score = 1.5*memory + percentage*50.0 - frequency*500.0
 	default:
 		panic("Unknown policy! " + policy)
 	}

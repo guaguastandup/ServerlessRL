@@ -15,9 +15,8 @@ policyList=[
     # 'random',
     'maxmem', 
     'score1',
-    # 'score2',
-    # 'score3', 
-    'score4',
+    'score2',
+    'score3',
     # "ideal",
 ]
 policyList2=[
@@ -26,13 +25,12 @@ policyList2=[
     # 'random',
     'maxmem', 
     'score1',
-    # 'score2',
-    # 'score3', 
-    'score4',
+    'score2',
+    'score3',
     # "ideal",
 ]
 
-memoryList=[400, 800, 1200, 1600]
+memoryList=[400, 800, 1200]
 # memoryList=[200, 400, 600, 800, 1000, 1200]
 arrivalCnt=1
 id = 0

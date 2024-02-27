@@ -69,7 +69,10 @@ func (s *Server) handleFuncFinishEvent(e *FunctionFinishEvent) {
 
 	prewarmWindow, keepAliveWindow := getWindow(e.app)
 	e.app.KeepAliveTime = keepAliveWindow
-	e.app.PreWarmTime = prewarmWindow
+	e.app.PreWarmTime = prewarmWindow - ColdStartTimeMap[e.app.AppID]
+	if e.app.PreWarmTime < 0 {
+		e.app.PreWarmTime = 0
+	}
 	KeepAliveTimeMap[e.app.AppID] = keepAliveWindow
 
 	if prewarmWindow == 0 { // 使用KeepAlive的策略

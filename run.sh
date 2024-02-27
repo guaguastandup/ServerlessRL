@@ -2,31 +2,26 @@
 # defaultPreWarmTime    单位min
 # defaultMemoryCapcity  单位GB
 # ArricalCnt
-# IsFixed 0/1
-# SumLimit 
-# leftBound
-# leftBound2
+# IsFixed 0/1 # SumLimit 
+# leftBound # leftBound2
 # rightBound
-
 cleanup() {
-    echo "Caught SIGINT signal, terminating the background processes..."
     pkill -P $$
 }
 trap cleanup SIGINT
 
 keepAliveList=(10)
-
-policyList=('score2' 'score3')
-policyList2=('score2' 'score3')
-memoryList=(400 800 1200 1600)
+policyList=('maxmem' 'score1' 'score2' 'score3')
+policyList2=('maxmem' 'score1' 'score2' 'score3')
+memoryList=(200 300 400 500 600 700 800 900 1000)
 arrivalCnt=1
 
 cd pkg/system && go build
 for keepAlive in "${keepAliveList[@]}"
 do
-    for memory in "${memoryList[@]}"
+    for policy in "${policyList[@]}"
     do 
-        for policy in "${policyList[@]}"
+        for memory in "${memoryList[@]}"
         do 
             fixed=1
             prewarm=0
@@ -38,17 +33,18 @@ do
             echo "$fullpath"
             ./system $keepAlive $prewarm $memory $arrivalCnt $fixed 0 0 0 0 $policy > ../output/$fullpath &
         done
-        # wait
+        wait
     done
-    # wait
 done
-# wait
+
+wait
+
 for keepAlive in "${keepAliveList[@]}"
 do
-    for memory in "${memoryList[@]}"
-    do
-        for policy in "${policyList2[@]}"
-        do  
+    for policy in "${policyList[@]}"
+    do 
+        for memory in "${memoryList[@]}"
+        do   
             fixed=0
             prewarm=0
             sum=20
@@ -63,9 +59,8 @@ do
             echo "$fullpath"
             ./system $keepAlive $prewarm $memory $arrivalCnt $fixed $sum $leftBound $leftBound2 $rightBound $policy > ../output/$fullpath &
         done
-        # wait
+        wait
     done
-    # wait
 done
 wait
 cd ../.. && ./draw.sh

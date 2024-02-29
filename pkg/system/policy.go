@@ -22,7 +22,7 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 		}
 		cnt += 1
 	}
-	for s.totalMemUsing+1*1024 > s.MEMCapacity {
+	for s.totalMemUsing+5*1024 > s.MEMCapacity {
 		if ContainerIdleList.Len() == 0 {
 			break
 		}
@@ -90,6 +90,17 @@ func (s *Server) getScore(appID string, timestamp int64) float64 {
 		score = 2.0*memory + percentage*100.0 - frequency*600.0
 		timecost := float64(ColdStartTimeMap[appID])
 		score -= (math.Pow(timecost, 0.15) * (1 - frequency))
+	case "score4":
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval)
+		memory := float64(MemoryMap[appID])
+		frequency := float64(IntervalCnt[appID]) / float64(totalFrequency)
+		score = 2.0*memory + percentage*25.0 - frequency*300.0
+	case "score5":
+		interval := int64(s.currTime - LastIdleTime[appID])
+		percentage := getPercentage(appID, interval)
+		memory := float64(MemoryMap[appID])
+		score = memory + percentage*100.0
 	default:
 		panic("Unknown policy! " + policy)
 	}

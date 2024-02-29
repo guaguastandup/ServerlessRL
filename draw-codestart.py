@@ -17,8 +17,6 @@ policyList=[
     'score1',
     'score2',
     'score3',
-    'score4',
-    'score5',
     # "ideal",
 ]
 policyList2=[
@@ -29,17 +27,15 @@ policyList2=[
     'score1',
     'score2',
     'score3',
-    'score4',
-    'score5',
     # "ideal",
 ]
 
-memoryList=[200, 400, 600, 800]
+memoryList=[200, 300, 400, 500, 600, 700, 800, 900, 1000]
 arrivalCnt=1
 id = 0
 
-maxlen = 0
-# maxlen = 200
+maxlen = 250
+
 def draw():
     plt.rcParams.update({'font.size': 15})
     plt.figure(figsize=(40, 20))
@@ -142,7 +138,7 @@ def statistics():
         print(label[file], avg)
         print(label[file], dot10, dot25, dot50, dot75, dot90, dot100, '\n')
 
-def draw_score():
+def draw_coldstart():
     plt.figure(figsize=(15, 25))
     plt.rcParams.update({'font.size': 30})
     minlen = 1000000000
@@ -154,8 +150,7 @@ def draw_score():
     best = ''
     best_val = 100000
     
-    if maxlen != 0 :
-        minlen = maxlen
+    minlen = maxlen
     for i in range(len(logPath)):
         if 'his' in logPath[i] and 'maxmem' in logPath[i]:
             h_m = avg_coldstart[logPath[i]][minlen-1]
@@ -184,8 +179,7 @@ def draw_warmstart():
     print("minlen: ", minlen)
     best = ''
     best_val = 0
-    if maxlen != 0:
-        minlen = maxlen
+    minlen = maxlen
     for i in range(len(logPath)):
         if 'his' in logPath[i] and 'maxmem' in logPath[i]:
             h_m = warm_start[logPath[i]][minlen-1]
@@ -203,122 +197,19 @@ def draw_warmstart():
     plt.savefig(f"./pkg/result/multi-warmstart-{str(id)}.png")
     plt.close()    
 
-def draw_cost():
-    plt.figure(figsize=(15, 25))
-    plt.rcParams.update({'font.size': 30})
-    plt.subplot(2, 1, 1)
-    minlen = 1000000000
-    h_m = 0
-    for i in range(len(logPath)):
-        plt.plot(timeCost[logPath[i]], label=label[logPath[i]], linewidth=2)
-        minlen = min(minlen, len(timeCost[logPath[i]]))
-    print("minlen: ", minlen)
-    best = ''
-    best_val = 1000000000000
-    if maxlen != 0:
-        minlen = maxlen
-    for i in range(len(logPath)):
-        if 'his' in logPath[i] and 'maxmem' in logPath[i]:
-            h_m = timeCost[logPath[i]][minlen-1]
-        if best_val > timeCost[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
-            best = label[logPath[i]]
-            best_val = timeCost[logPath[i]][minlen-1]
-        print(logPath[i], timeCost[logPath[i]][minlen-1], len(timeCost[logPath[i]]))
-    print("\nbest timecost: ", best, best_val, "decrease: ", 100.0 * (h_m - best_val)/h_m, "%")
-    plt.legend(loc='upper left')
-    plt.title('total timecost')
-    plt.xlabel('xxx')
-    plt.ylabel('timecost Rate')
-    
-    # plt.subplot(2, 1, 2)
-    # minlen = 1000000000
-    # for i in range(len(logPath)):
-    #     plt.plot(memCost[logPath[i]], label=label[logPath[i]], linewidth=2)
-    #     minlen = min(minlen, len(memCost[logPath[i]]))
-    # print("minlen: ", minlen)
-    # best = ''
-    # best_val = 1000000000000
-    # h_m = 0
-    # for i in range(len(logPath)):
-    #     if 'his' in logPath[i] and 'maxmem' in logPath[i]:
-    #         h_m = memCost[logPath[i]][minlen-1]
-    #     if best_val > memCost[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
-    #         best = label[logPath[i]]
-    #         best_val = memCost[logPath[i]][minlen-1]
-    #     print(logPath[i], memCost[logPath[i]][minlen-1])
-    # print("\nbest memcost: ", best, best_val, "decrease: ", 100.0 * (h_m - best_val)/h_m, "%")
-    # plt.legend(loc='upper left')
-    # plt.title('total memcost')
-    # plt.xlabel('xxx')
-    # plt.ylabel('memcost Rate')
-    
-    # plt.grid(True)
-    # plt.tight_layout()
-    # plt.savefig(f"./pkg/result/multi-cost-{str(id)}.png")
-    # plt.close() 
-    
-def draw_score1():
-    plt.figure(figsize=(20, 30))
-    plt.rcParams.update({'font.size': 20})
-    for i in range(len(logPath)):
-        plt.plot(avg_mem_score[logPath[i]], label=label[logPath[i]])
-        plt.plot(avg_time_score[logPath[i]], label=label[logPath[i]])
-    plt.legend(loc='upper right')
-    plt.title('Average Score')
-    plt.xlabel('Minute')
-    plt.ylabel('Score (%)')
-    plt.savefig(f"./pkg/result/multi-score2-{str(id)}.png")
-    plt.close()
-    plt.grid(True)
-
 def read():
     for i in range(len(logPath)):
         with open('./pkg/output/' + logPath[i] + '.log', 'r') as file:
-            mem_running_usage[logPath[i]] = []
-            mem_occupy_usage[logPath[i]] = []
-            mem_score[logPath[i]] = []
-            time_score[logPath[i]] = []
-            warm_start_rate[logPath[i]] = []
             cdf_warmstart[logPath[i]] = []
-            app_mem_score[logPath[i]] = []
-            app_time_score[logPath[i]] = []
             avg_coldstart[logPath[i]] = []
-            avg_mem_score[logPath[i]] = []
-            avg_time_score[logPath[i]] = []
-            warm_start[logPath[i]] = []
-            memCost[logPath[i]] = []
-            timeCost[logPath[i]] = []
             for line in file:
                 if 'Inf' in line or 'NaN' in line:
                     continue
-                if line.startswith('MEMRunningUsage'):
-                    mem_running_usage[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('MemOccupyingUsage'):
-                    mem_occupy_usage[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('Mem Score'):
-                    mem_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('Time Score'):
-                    time_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('warmStart Rate'):
-                    warm_start_rate[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('warmstart rate'):
+                if line.startswith('warmstart rate'): #
                     cdf_warmstart[logPath[i]].append(float(line.split(':  ')[1].split(' ')[0]))
-                elif line.startswith('app mem socre'):
-                    app_mem_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('app time socre'):
-                    app_time_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('app average coldstart rate'):
+                elif line.startswith('app average coldstart rate'): #
                     avg_coldstart[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('average mem socre'):
-                    avg_mem_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('average time socre'):
-                    avg_time_score[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('warmstart'):
-                    warm_start[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('total coldstartTimeCost'):
-                    timeCost[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
-                elif line.startswith('total coldstartMemCost'):
-                    memCost[logPath[i]].append(float(line.split(': ')[1].split(' ')[0]))
+                    
 for i in range(len(memoryList)):
     logPath = []
     label = {}
@@ -344,9 +235,7 @@ for i in range(len(memoryList)):
         memory = path.split('-')[3]
         label[path] = type + '-' + policy + '-' + keepAlive + '-' + memory
     read()
-    draw_score()
+    draw_coldstart()
     draw_cost()
     draw_warmstart()
     print("-----------------------------------------------------------")
-    # draw()
-    # draw_score1()

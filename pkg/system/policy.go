@@ -22,7 +22,7 @@ func (s *Server) handleEvictEvent(e *baseEvent) {
 		}
 		cnt += 1
 	}
-	for s.totalMemUsing+5*1024 > s.MEMCapacity {
+	for s.totalMemUsing+4*1024 > s.MEMCapacity {
 		if ContainerIdleList.Len() == 0 {
 			break
 		}

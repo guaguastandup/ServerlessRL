@@ -83,11 +83,11 @@ func getWindow(app *Application) (int, int) {
 		prewarmWindow -= 1
 		keepAliveWindow += 1
 	}
-	// if prewarmWindow <= 30*Second {
-	// 	prewarmWindow = 0
-	// }
-	if keepAliveWindow < 2*Minute {
-		keepAliveWindow = int(2 * float64(Minute))
+	if prewarmWindow <= 1*Minute {
+		prewarmWindow = 0
+	}
+	if keepAliveWindow < 3*Minute {
+		keepAliveWindow = int(3 * float64(Minute))
 	}
 	prewarmWindow = int(float64(prewarmWindow) * 0.8 * unit)
 	keepAliveWindow = int(float64(keepAliveWindow) * 1.2 * unit)

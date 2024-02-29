@@ -8,11 +8,10 @@ warm_start_rate, cdf_warmstart = {}, {}
 app_mem_score, app_time_score = {}, {}
 avg_coldstart, avg_mem_score, avg_time_score = {}, {}, {}
 warm_start, timeCost, memCost = {}, {}, {}
-keepAliveList=[10]
+keepAliveList=[15]
 policyList=[
-    # 'lru',
-    # 'lfu',
-    # 'random',
+    'lru',
+    'random',
     'maxmem', 
     'score1',
     'score2',
@@ -22,9 +21,8 @@ policyList=[
     # "ideal",
 ]
 policyList2=[
-    # 'lru',
-    # 'lfu',
-    # 'random',
+    'lru',
+    'random',
     'maxmem', 
     'score1',
     'score2',
@@ -38,7 +36,7 @@ memoryList=[200, 400, 600, 800]
 arrivalCnt=1
 id = 0
 
-maxlen = 0
+maxlen = 520
 # maxlen = 200
 def draw():
     plt.rcParams.update({'font.size': 15})
@@ -146,7 +144,7 @@ def draw_score():
     plt.figure(figsize=(15, 25))
     plt.rcParams.update({'font.size': 30})
     minlen = 1000000000
-    h_m = 0
+    h_m = 1
     for i in range(len(logPath)):
         plt.plot(avg_coldstart[logPath[i]], label=label[logPath[i]], linewidth=2)
         minlen = min(minlen, len(avg_coldstart[logPath[i]]))
@@ -177,7 +175,7 @@ def draw_warmstart():
     plt.figure(figsize=(15, 25))
     plt.rcParams.update({'font.size': 30})
     minlen = 1000000000
-    h_m = 0
+    h_m = 1
     for i in range(len(logPath)):
         plt.plot(warm_start[logPath[i]], label=label[logPath[i]], linewidth=2)
         minlen = min(minlen, len(warm_start[logPath[i]]))
@@ -208,7 +206,7 @@ def draw_cost():
     plt.rcParams.update({'font.size': 30})
     plt.subplot(2, 1, 1)
     minlen = 1000000000
-    h_m = 0
+    h_m = 1
     for i in range(len(logPath)):
         plt.plot(timeCost[logPath[i]], label=label[logPath[i]], linewidth=2)
         minlen = min(minlen, len(timeCost[logPath[i]]))
@@ -230,32 +228,34 @@ def draw_cost():
     plt.xlabel('xxx')
     plt.ylabel('timecost Rate')
     
-    # plt.subplot(2, 1, 2)
-    # minlen = 1000000000
-    # for i in range(len(logPath)):
-    #     plt.plot(memCost[logPath[i]], label=label[logPath[i]], linewidth=2)
-    #     minlen = min(minlen, len(memCost[logPath[i]]))
-    # print("minlen: ", minlen)
-    # best = ''
-    # best_val = 1000000000000
-    # h_m = 0
-    # for i in range(len(logPath)):
-    #     if 'his' in logPath[i] and 'maxmem' in logPath[i]:
-    #         h_m = memCost[logPath[i]][minlen-1]
-    #     if best_val > memCost[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
-    #         best = label[logPath[i]]
-    #         best_val = memCost[logPath[i]][minlen-1]
-    #     print(logPath[i], memCost[logPath[i]][minlen-1])
-    # print("\nbest memcost: ", best, best_val, "decrease: ", 100.0 * (h_m - best_val)/h_m, "%")
-    # plt.legend(loc='upper left')
-    # plt.title('total memcost')
-    # plt.xlabel('xxx')
-    # plt.ylabel('memcost Rate')
+    plt.subplot(2, 1, 2)
+    minlen = 1000000000
+    for i in range(len(logPath)):
+        plt.plot(memCost[logPath[i]], label=label[logPath[i]], linewidth=2)
+        minlen = min(minlen, len(memCost[logPath[i]]))
+    print("minlen: ", minlen)
+    best = ''
+    best_val = 1000000000000
+    h_m = 1
+    if maxlen != 0:
+        minlen = maxlen
+    for i in range(len(logPath)):
+        if 'his' in logPath[i] and 'maxmem' in logPath[i]:
+            h_m = memCost[logPath[i]][minlen-1]
+        if best_val > memCost[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
+            best = label[logPath[i]]
+            best_val = memCost[logPath[i]][minlen-1]
+        print(logPath[i], memCost[logPath[i]][minlen-1])
+    print("\nbest memcost: ", best, best_val, "decrease: ", 100.0 * (h_m - best_val)/h_m, "%")
+    plt.legend(loc='upper left')
+    plt.title('total memcost')
+    plt.xlabel('xxx')
+    plt.ylabel('memcost Rate')
     
-    # plt.grid(True)
-    # plt.tight_layout()
-    # plt.savefig(f"./pkg/result/multi-cost-{str(id)}.png")
-    # plt.close() 
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(f"./pkg/result/multi-cost-{str(id)}.png")
+    plt.close() 
     
 def draw_score1():
     plt.figure(figsize=(20, 30))
@@ -348,5 +348,3 @@ for i in range(len(memoryList)):
     draw_cost()
     draw_warmstart()
     print("-----------------------------------------------------------")
-    # draw()
-    # draw_score1()

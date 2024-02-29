@@ -36,7 +36,7 @@ func (s *Server) handleBatchFuncSubmitEvent(e *BatchFunctionSubmitEvent) {
 			if interval < 0 {
 				interval = 0
 			}
-			if interval > 0 {
+			if interval >= 0 {
 				interval_min := int(math.Ceil(interval / unit))
 				updateHistogram(req.AppID, interval_min)
 				IntervalSum[req.AppID] += interval

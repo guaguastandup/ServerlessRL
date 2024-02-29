@@ -22,7 +22,7 @@ var leftBound float64 = 0.05
 var leftBound2 float64 = 0.1
 var rightBound float64 = 0.95
 var policy string = "lru"
-var totalDay int = 4
+var totalDay int = 10
 var totalMinute int = 1140
 
 type Container struct {

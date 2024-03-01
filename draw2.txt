@@ -1,0 +1,93 @@
+minlen:  570
+fixed/random/fixed-random-15-200-1 252899.8244 570
+fixed/lru/fixed-lru-15-200-1 228186.6745 570
+fixed/maxmem/fixed-maxmem-15-200-1 251155.8966 570
+fixed/score4/fixed-score4-15-200-1 227621.9509 570
+histogram/random/histogram-random-15-200-1 251118.9973 570
+histogram/lru/histogram-lru-15-200-1 230078.0975 570
+histogram/maxmem/histogram-maxmem-15-200-1 248635.1764 570
+histogram/score4/histogram-score4-15-200-1 223934.8236 570
+
+best timecost:  histogram-score4-15-200 223934.8236 decrease:  9.934375802184357 %
+
+minlen:  570
+fixed/random/fixed-random-15-200-1 15401.2955
+fixed/lru/fixed-lru-15-200-1 13899.6812
+fixed/maxmem/fixed-maxmem-15-200-1 15913.5616
+fixed/score4/fixed-score4-15-200-1 15107.2443
+histogram/random/histogram-random-15-200-1 15368.1893
+histogram/lru/histogram-lru-15-200-1 13938.4161
+histogram/maxmem/histogram-maxmem-15-200-1 15853.6917
+histogram/score4/histogram-score4-15-200-1 14989.0562
+
+best memcost:  fixed-lru-15-200 13899.6812 decrease:  12.3252712174288 %
+-----------------------------------------------------------
+minlen:  526
+fixed/random/fixed-random-15-400-1 192592.7521 570
+fixed/lru/fixed-lru-15-400-1 166937.3455 570
+fixed/maxmem/fixed-maxmem-15-400-1 181781.1119 570
+fixed/score4/fixed-score4-15-400-1 157042.8451 570
+histogram/random/histogram-random-15-400-1 190385.3489 570
+histogram/lru/histogram-lru-15-400-1 164066.1279 570
+histogram/maxmem/histogram-maxmem-15-400-1 178846.5897 526
+histogram/score4/histogram-score4-15-400-1 155469.9084 570
+
+best timecost:  histogram-score4-15-400 155469.9084 decrease:  13.070800700875777 %
+minlen:  526
+fixed/random/fixed-random-15-400-1 11989.5009
+fixed/lru/fixed-lru-15-400-1 10148.7579
+fixed/maxmem/fixed-maxmem-15-400-1 13327.4664
+fixed/score4/fixed-score4-15-400-1 11800.0758
+histogram/random/histogram-random-15-400-1 11881.1958
+histogram/lru/histogram-lru-15-400-1 9966.9942
+histogram/maxmem/histogram-maxmem-15-400-1 13134.5627
+histogram/score4/histogram-score4-15-400-1 11723.2789
+
+best memcost:  histogram-lru-15-400 9966.9942 decrease:  24.116284434806502 %
+-----------------------------------------------------------
+minlen:  570
+fixed/random/fixed-random-15-600-1 132599.2333 570
+fixed/lru/fixed-lru-15-600-1 116563.6632 570
+fixed/maxmem/fixed-maxmem-15-600-1 103440.8215 570
+fixed/score4/fixed-score4-15-600-1 91184.7234 570
+histogram/random/histogram-random-15-600-1 131233.9758 570
+histogram/lru/histogram-lru-15-600-1 115076.1663 570
+histogram/maxmem/histogram-maxmem-15-600-1 102344.7469 570
+histogram/score4/histogram-score4-15-600-1 91217.6429 570
+
+best timecost:  fixed-score4-15-600 91184.7234 decrease:  10.904344226777306 %
+minlen:  570
+fixed/random/fixed-random-15-600-1 8402.5669
+fixed/lru/fixed-lru-15-600-1 7228.0202
+fixed/maxmem/fixed-maxmem-15-600-1 9819.772
+fixed/score4/fixed-score4-15-600-1 8848.0639
+histogram/random/histogram-random-15-600-1 8358.4784
+histogram/lru/histogram-lru-15-600-1 7184.5438
+histogram/maxmem/histogram-maxmem-15-600-1 9723.7887
+histogram/score4/histogram-score4-15-600-1 8895.7457
+
+best memcost:  histogram-lru-15-600 7184.5438 decrease:  26.113740007534297 %
+-----------------------------------------------------------
+minlen:  570
+fixed/random/fixed-random-15-800-1 80853.8078 570
+fixed/lru/fixed-lru-15-800-1 71314.6459 570
+fixed/maxmem/fixed-maxmem-15-800-1 51527.8406 570
+fixed/score4/fixed-score4-15-800-1 48211.5132 570
+histogram/random/histogram-random-15-800-1 80423.25 570
+histogram/lru/histogram-lru-15-800-1 70701.7867 570
+histogram/maxmem/histogram-maxmem-15-800-1 51430.3036 570
+histogram/score4/histogram-score4-15-800-1 48034.7527 570
+
+best timecost:  histogram-score4-15-800 48034.7527 decrease:  6.602237712631356 %
+minlen:  570
+fixed/random/fixed-random-15-800-1 5192.4411
+fixed/lru/fixed-lru-15-800-1 4591.7898
+fixed/maxmem/fixed-maxmem-15-800-1 6816.9222
+fixed/score4/fixed-score4-15-800-1 6395.6126
+histogram/random/histogram-random-15-800-1 5180.692
+histogram/lru/histogram-lru-15-800-1 4594.3891
+histogram/maxmem/histogram-maxmem-15-800-1 7053.4465
+histogram/score4/histogram-score4-15-800-1 6658.3
+
+best memcost:  fixed-lru-15-800 4591.7898 decrease:  34.90005488806076 %
+-----------------------------------------------------------

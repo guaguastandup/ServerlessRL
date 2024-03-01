@@ -1,0 +1,48 @@
+minlen:  570
+fixed/random/fixed-random-15-200-1 7.7271
+fixed/lru/fixed-lru-15-200-1 8.1258
+fixed/maxmem/fixed-maxmem-15-200-1 11.0253
+fixed/score4/fixed-score4-15-200-1 16.5055
+histogram/random/histogram-random-15-200-1 8.0239
+histogram/lru/histogram-lru-15-200-1 7.4587
+histogram/maxmem/histogram-maxmem-15-200-1 11.8537
+histogram/score4/histogram-score4-15-200-1 17.5185
+
+best warmstart rate:  histogram-score4-15-200 17.5185 increase:  47.78929785636552 %
+-----------------------------------------------------------
+minlen:  526
+fixed/random/fixed-random-15-400-1 36.722
+fixed/lru/fixed-lru-15-400-1 35.6962
+fixed/maxmem/fixed-maxmem-15-400-1 45.5777
+fixed/score4/fixed-score4-15-400-1 49.4143
+histogram/random/histogram-random-15-400-1 37.3216
+histogram/lru/histogram-lru-15-400-1 35.8957
+histogram/maxmem/histogram-maxmem-15-400-1 46.2776
+histogram/score4/histogram-score4-15-400-1 49.7127
+
+best warmstart rate:  histogram-score4-15-400 49.7127 increase:  7.422813629055955 %
+-----------------------------------------------------------
+minlen:  570
+fixed/random/fixed-random-15-600-1 61.7141
+fixed/lru/fixed-lru-15-600-1 64.3574
+fixed/maxmem/fixed-maxmem-15-600-1 71.6472
+fixed/score4/fixed-score4-15-600-1 72.1405
+histogram/random/histogram-random-15-600-1 62.0337
+histogram/lru/histogram-lru-15-600-1 64.5247
+histogram/maxmem/histogram-maxmem-15-600-1 71.8448
+histogram/score4/histogram-score4-15-600-1 72.0757
+
+best warmstart rate:  fixed-score4-15-600 72.1405 increase:  0.41158163151682026 %
+-----------------------------------------------------------
+minlen:  570
+fixed/random/fixed-random-15-800-1 79.8891
+fixed/lru/fixed-lru-15-800-1 81.2925
+fixed/maxmem/fixed-maxmem-15-800-1 86.9468
+fixed/score4/fixed-score4-15-800-1 86.6332
+histogram/random/histogram-random-15-800-1 79.9402
+histogram/lru/histogram-lru-15-800-1 81.2521
+histogram/maxmem/histogram-maxmem-15-800-1 86.6394
+histogram/score4/histogram-score4-15-800-1 86.2488
+
+best warmstart rate:  fixed-maxmem-15-800 86.9468 increase:  0.354803934468615 %
+-----------------------------------------------------------

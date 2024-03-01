@@ -8,36 +8,36 @@ warm_start_rate, cdf_warmstart = {}, {}
 app_mem_score, app_time_score = {}, {}
 avg_coldstart, avg_mem_score, avg_time_score = {}, {}, {}
 warm_start, timeCost, memCost = {}, {}, {}
-keepAliveList=[15]
+keepAliveList=[10]
 policyList=[
-    'lru',
-    'random',
-    'maxmem', 
-    'score1',
-    'score2',
-    'score3',
+    # 'random',
+    # 'lru',
+    # 'maxmem', 
+    # 'score1',
+    # 'score2',
+    # 'score3',
     'score4',
-    'score5',
-    # "ideal",
+    # 'score5',
 ]
 policyList2=[
-    'lru',
-    'random',
-    'maxmem', 
-    'score1',
-    'score2',
-    'score3',
+    # 'random',
+    # 'lru',
+    # 'maxmem', 
+    # 'score1',
+    # 'score2',
+    # 'score3',
     'score4',
-    'score5',
-    # "ideal",
+    # 'score5',
 ]
 
-memoryList=[200, 400, 600, 800]
+# memoryList=[200, 400, 600, 800]
+memoryList=[500]
 arrivalCnt=1
 id = 0
 
-maxlen = 520
+# maxlen = 520
 # maxlen = 200
+maxlen = 0
 def draw():
     plt.rcParams.update({'font.size': 15})
     plt.figure(figsize=(40, 20))
@@ -228,34 +228,34 @@ def draw_cost():
     plt.xlabel('xxx')
     plt.ylabel('timecost Rate')
     
-    plt.subplot(2, 1, 2)
-    minlen = 1000000000
-    for i in range(len(logPath)):
-        plt.plot(memCost[logPath[i]], label=label[logPath[i]], linewidth=2)
-        minlen = min(minlen, len(memCost[logPath[i]]))
-    print("minlen: ", minlen)
-    best = ''
-    best_val = 1000000000000
-    h_m = 1
-    if maxlen != 0:
-        minlen = maxlen
-    for i in range(len(logPath)):
-        if 'his' in logPath[i] and 'maxmem' in logPath[i]:
-            h_m = memCost[logPath[i]][minlen-1]
-        if best_val > memCost[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
-            best = label[logPath[i]]
-            best_val = memCost[logPath[i]][minlen-1]
-        print(logPath[i], memCost[logPath[i]][minlen-1])
-    print("\nbest memcost: ", best, best_val, "decrease: ", 100.0 * (h_m - best_val)/h_m, "%")
-    plt.legend(loc='upper left')
-    plt.title('total memcost')
-    plt.xlabel('xxx')
-    plt.ylabel('memcost Rate')
+    # plt.subplot(2, 1, 2)
+    # minlen = 1000000000
+    # for i in range(len(logPath)):
+    #     plt.plot(memCost[logPath[i]], label=label[logPath[i]], linewidth=2)
+    #     minlen = min(minlen, len(memCost[logPath[i]]))
+    # print("minlen: ", minlen)
+    # best = ''
+    # best_val = 1000000000000
+    # h_m = 1
+    # if maxlen != 0:
+    #     minlen = maxlen
+    # for i in range(len(logPath)):
+    #     if 'his' in logPath[i] and 'maxmem' in logPath[i]:
+    #         h_m = memCost[logPath[i]][minlen-1]
+    #     if best_val > memCost[logPath[i]][minlen-1] and 'ideal' not in label[logPath[i]]:
+    #         best = label[logPath[i]]
+    #         best_val = memCost[logPath[i]][minlen-1]
+    #     print(logPath[i], memCost[logPath[i]][minlen-1])
+    # print("\nbest memcost: ", best, best_val, "decrease: ", 100.0 * (h_m - best_val)/h_m, "%")
+    # plt.legend(loc='upper left')
+    # plt.title('total memcost')
+    # plt.xlabel('xxx')
+    # plt.ylabel('memcost Rate')
     
-    plt.grid(True)
-    plt.tight_layout()
-    plt.savefig(f"./pkg/result/multi-cost-{str(id)}.png")
-    plt.close() 
+    # plt.grid(True)
+    # plt.tight_layout()
+    # plt.savefig(f"./pkg/result/multi-cost-{str(id)}.png")
+    # plt.close() 
     
 def draw_score1():
     plt.figure(figsize=(20, 30))

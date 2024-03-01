@@ -1,308 +1,64 @@
 minlen:  570
-fixed/lru/fixed-lru-15-200-1 0.9657
-fixed/random/fixed-random-15-200-1 0.973
-fixed/maxmem/fixed-maxmem-15-200-1 0.9591
-fixed/score1/fixed-score1-15-200-1 0.9397
-fixed/score2/fixed-score2-15-200-1 0.9395
-fixed/score3/fixed-score3-15-200-1 0.9397
-fixed/score4/fixed-score4-15-200-1 0.9393
-fixed/score5/fixed-score5-15-200-1 0.9447
-histogram/lru/histogram-lru-15-200-1 0.9681
-histogram/random/histogram-random-15-200-1 0.9721
 histogram/maxmem/histogram-maxmem-15-200-1 0.9564
-histogram/score1/histogram-score1-15-200-1 0.937
-histogram/score2/histogram-score2-15-200-1 0.937
-histogram/score3/histogram-score3-15-200-1 0.9369
-histogram/score4/histogram-score4-15-200-1 0.9367
 histogram/score5/histogram-score5-15-200-1 0.9389
 
-best coldstart rate:  histogram-score4-15-200 0.9367 decrease:  2.0598076118778805 %
+best coldstart rate:  histogram-score5-15-200 0.9389 decrease:  1.8297783354245158 %
 minlen:  570
-fixed/lru/fixed-lru-15-200-1 228186.6745 570
-fixed/random/fixed-random-15-200-1 252899.8244 570
-fixed/maxmem/fixed-maxmem-15-200-1 251155.8966 570
-fixed/score1/fixed-score1-15-200-1 227605.5057 570
-fixed/score2/fixed-score2-15-200-1 227212.5241 570
-fixed/score3/fixed-score3-15-200-1 227274.369 570
-fixed/score4/fixed-score4-15-200-1 227621.9509 570
-fixed/score5/fixed-score5-15-200-1 232850.563 570
-histogram/lru/histogram-lru-15-200-1 230078.0975 570
-histogram/random/histogram-random-15-200-1 251118.9973 570
 histogram/maxmem/histogram-maxmem-15-200-1 248635.1764 570
-histogram/score1/histogram-score1-15-200-1 223912.805 570
-histogram/score2/histogram-score2-15-200-1 223484.2867 570
-histogram/score3/histogram-score3-15-200-1 223615.6709 570
-histogram/score4/histogram-score4-15-200-1 223934.8236 570
 histogram/score5/histogram-score5-15-200-1 226290.3766 570
 
-best timecost:  histogram-score2-15-200 223484.2867 decrease:  10.115579808199657 %
+best timecost:  histogram-score5-15-200 226290.3766 decrease:  8.98698250325291 %
 minlen:  570
-fixed/lru/fixed-lru-15-200-1 13899.6812
-fixed/random/fixed-random-15-200-1 15401.2955
-fixed/maxmem/fixed-maxmem-15-200-1 15913.5616
-fixed/score1/fixed-score1-15-200-1 15107.3526
-fixed/score2/fixed-score2-15-200-1 15086.5871
-fixed/score3/fixed-score3-15-200-1 15092.928
-fixed/score4/fixed-score4-15-200-1 15107.2443
-fixed/score5/fixed-score5-15-200-1 15276.2948
-histogram/lru/histogram-lru-15-200-1 13938.4161
-histogram/random/histogram-random-15-200-1 15368.1893
-histogram/maxmem/histogram-maxmem-15-200-1 15853.6917
-histogram/score1/histogram-score1-15-200-1 14987.8068
-histogram/score2/histogram-score2-15-200-1 14966.0658
-histogram/score3/histogram-score3-15-200-1 14972.6087
-histogram/score4/histogram-score4-15-200-1 14989.0562
-histogram/score5/histogram-score5-15-200-1 15077.6078
-
-best memcost:  fixed-lru-15-200 13899.6812 decrease:  12.3252712174288 %
-minlen:  570
-fixed/lru/fixed-lru-15-200-1 8.1258
-fixed/random/fixed-random-15-200-1 7.7271
-fixed/maxmem/fixed-maxmem-15-200-1 11.0253
-fixed/score1/fixed-score1-15-200-1 16.5152
-fixed/score2/fixed-score2-15-200-1 16.4995
-fixed/score3/fixed-score3-15-200-1 16.5035
-fixed/score4/fixed-score4-15-200-1 16.5055
-fixed/score5/fixed-score5-15-200-1 14.6118
-histogram/lru/histogram-lru-15-200-1 7.4587
-histogram/random/histogram-random-15-200-1 8.0239
 histogram/maxmem/histogram-maxmem-15-200-1 11.8537
-histogram/score1/histogram-score1-15-200-1 17.5378
-histogram/score2/histogram-score2-15-200-1 17.5249
-histogram/score3/histogram-score3-15-200-1 17.5195
-histogram/score4/histogram-score4-15-200-1 17.5185
 histogram/score5/histogram-score5-15-200-1 16.7054
 
-best warmstart rate:  histogram-score1-15-200 17.5378 increase:  47.952116216877435 %
+best warmstart rate:  histogram-score5-15-200 16.7054 increase:  40.929836253659204 %
 -----------------------------------------------------------
 minlen:  526
-fixed/lru/fixed-lru-15-400-1 0.8726
-fixed/random/fixed-random-15-400-1 0.884
-fixed/maxmem/fixed-maxmem-15-400-1 0.8492
-fixed/score1/fixed-score1-15-400-1 0.8336
-fixed/score2/fixed-score2-15-400-1 0.8339
-fixed/score3/fixed-score3-15-400-1 0.8338
-fixed/score4/fixed-score4-15-400-1 0.8335
-fixed/score5/fixed-score5-15-400-1 0.8358
-histogram/lru/histogram-lru-15-400-1 0.8705
-histogram/random/histogram-random-15-400-1 0.881
 histogram/maxmem/histogram-maxmem-15-400-1 0.8458
-histogram/score1/histogram-score1-15-400-1 0.8317
-histogram/score2/histogram-score2-15-400-1 0.8317
-histogram/score3/histogram-score3-15-400-1 0.8317
-histogram/score4/histogram-score4-15-400-1 0.8316
 histogram/score5/histogram-score5-15-400-1 0.8329
 
-best coldstart rate:  histogram-score4-15-400 0.8316 decrease:  1.6788838969023399 %
+best coldstart rate:  histogram-score5-15-400 0.8329 decrease:  1.5251832584535379 %
 minlen:  526
-fixed/lru/fixed-lru-15-400-1 166937.3455 570
-fixed/random/fixed-random-15-400-1 192592.7521 570
-fixed/maxmem/fixed-maxmem-15-400-1 181781.1119 570
-fixed/score1/fixed-score1-15-400-1 156978.3378 570
-fixed/score2/fixed-score2-15-400-1 156440.8161 570
-fixed/score3/fixed-score3-15-400-1 156586.0061 570
-fixed/score4/fixed-score4-15-400-1 157042.8451 570
-fixed/score5/fixed-score5-15-400-1 158853.2006 570
-histogram/lru/histogram-lru-15-400-1 164066.1279 570
-histogram/random/histogram-random-15-400-1 190385.3489 570
 histogram/maxmem/histogram-maxmem-15-400-1 178846.5897 526
-histogram/score1/histogram-score1-15-400-1 155478.4438 570
-histogram/score2/histogram-score2-15-400-1 154990.1259 570
-histogram/score3/histogram-score3-15-400-1 155126.3587 570
-histogram/score4/histogram-score4-15-400-1 155469.9084 570
 histogram/score5/histogram-score5-15-400-1 156784.8216 570
 
-best timecost:  histogram-score2-15-400 154990.1259 decrease:  13.339065530976685 %
+best timecost:  histogram-score5-15-400 156784.8216 decrease:  12.335582208755984 %
 minlen:  526
-fixed/lru/fixed-lru-15-400-1 10148.7579
-fixed/random/fixed-random-15-400-1 11989.5009
-fixed/maxmem/fixed-maxmem-15-400-1 13327.4664
-fixed/score1/fixed-score1-15-400-1 11795.0324
-fixed/score2/fixed-score2-15-400-1 11753.0784
-fixed/score3/fixed-score3-15-400-1 11763.2804
-fixed/score4/fixed-score4-15-400-1 11800.0758
-fixed/score5/fixed-score5-15-400-1 11870.3931
-histogram/lru/histogram-lru-15-400-1 9966.9942
-histogram/random/histogram-random-15-400-1 11881.1958
-histogram/maxmem/histogram-maxmem-15-400-1 13134.5627
-histogram/score1/histogram-score1-15-400-1 11721.5051
-histogram/score2/histogram-score2-15-400-1 11685.7149
-histogram/score3/histogram-score3-15-400-1 11698.4105
-histogram/score4/histogram-score4-15-400-1 11723.2789
-histogram/score5/histogram-score5-15-400-1 11762.1703
-
-best memcost:  histogram-lru-15-400 9966.9942 decrease:  24.116284434806502 %
-minlen:  526
-fixed/lru/fixed-lru-15-400-1 35.6962
-fixed/random/fixed-random-15-400-1 36.722
-fixed/maxmem/fixed-maxmem-15-400-1 45.5777
-fixed/score1/fixed-score1-15-400-1 49.4225
-fixed/score2/fixed-score2-15-400-1 49.4336
-fixed/score3/fixed-score3-15-400-1 49.4342
-fixed/score4/fixed-score4-15-400-1 49.4143
-fixed/score5/fixed-score5-15-400-1 48.9469
-histogram/lru/histogram-lru-15-400-1 35.8957
-histogram/random/histogram-random-15-400-1 37.3216
 histogram/maxmem/histogram-maxmem-15-400-1 46.2776
-histogram/score1/histogram-score1-15-400-1 49.7063
-histogram/score2/histogram-score2-15-400-1 49.7344
-histogram/score3/histogram-score3-15-400-1 49.7395
-histogram/score4/histogram-score4-15-400-1 49.7127
 histogram/score5/histogram-score5-15-400-1 49.4621
 
-best warmstart rate:  histogram-score3-15-400 49.7395 increase:  7.4807250159904575 %
+best warmstart rate:  histogram-score5-15-400 49.4621 increase:  6.88129894376545 %
 -----------------------------------------------------------
 minlen:  570
-fixed/lru/fixed-lru-15-600-1 0.7718
-fixed/random/fixed-random-15-600-1 0.7836
-fixed/maxmem/fixed-maxmem-15-600-1 0.7216
-fixed/score1/fixed-score1-15-600-1 0.7152
-fixed/score2/fixed-score2-15-600-1 0.7152
-fixed/score3/fixed-score3-15-600-1 0.7155
-fixed/score4/fixed-score4-15-600-1 0.7146
-fixed/score5/fixed-score5-15-600-1 0.7173
-histogram/lru/histogram-lru-15-600-1 0.771
-histogram/random/histogram-random-15-600-1 0.7822
 histogram/maxmem/histogram-maxmem-15-600-1 0.7204
-histogram/score1/histogram-score1-15-600-1 0.7151
-histogram/score2/histogram-score2-15-600-1 0.7151
-histogram/score3/histogram-score3-15-600-1 0.7157
-histogram/score4/histogram-score4-15-600-1 0.7146
 histogram/score5/histogram-score5-15-600-1 0.7171
 
-best coldstart rate:  fixed-score4-15-600 0.7146 decrease:  0.8051082731815695 %
+best coldstart rate:  histogram-score5-15-600 0.7171 decrease:  0.4580788450860745 %
 minlen:  570
-fixed/lru/fixed-lru-15-600-1 116563.6632 570
-fixed/random/fixed-random-15-600-1 132599.2333 570
-fixed/maxmem/fixed-maxmem-15-600-1 103440.8215 570
-fixed/score1/fixed-score1-15-600-1 91176.3028 570
-fixed/score2/fixed-score2-15-600-1 90483.3522 570
-fixed/score3/fixed-score3-15-600-1 90805.6519 570
-fixed/score4/fixed-score4-15-600-1 91184.7234 570
-fixed/score5/fixed-score5-15-600-1 92249.2366 570
-histogram/lru/histogram-lru-15-600-1 115076.1663 570
-histogram/random/histogram-random-15-600-1 131233.9758 570
 histogram/maxmem/histogram-maxmem-15-600-1 102344.7469 570
-histogram/score1/histogram-score1-15-600-1 91183.4532 570
-histogram/score2/histogram-score2-15-600-1 90504.603 570
-histogram/score3/histogram-score3-15-600-1 90853.9391 570
-histogram/score4/histogram-score4-15-600-1 91217.6429 570
 histogram/score5/histogram-score5-15-600-1 92227.6312 570
 
-best timecost:  fixed-score2-15-600 90483.3522 decrease:  11.589646815570957 %
+best timecost:  histogram-score5-15-600 92227.6312 decrease:  9.8853297374269 %
 minlen:  570
-fixed/lru/fixed-lru-15-600-1 7228.0202
-fixed/random/fixed-random-15-600-1 8402.5669
-fixed/maxmem/fixed-maxmem-15-600-1 9819.772
-fixed/score1/fixed-score1-15-600-1 8842.9171
-fixed/score2/fixed-score2-15-600-1 8778.392
-fixed/score3/fixed-score3-15-600-1 8801.3399
-fixed/score4/fixed-score4-15-600-1 8848.0639
-fixed/score5/fixed-score5-15-600-1 8799.1987
-histogram/lru/histogram-lru-15-600-1 7184.5438
-histogram/random/histogram-random-15-600-1 8358.4784
-histogram/maxmem/histogram-maxmem-15-600-1 9723.7887
-histogram/score1/histogram-score1-15-600-1 8887.7772
-histogram/score2/histogram-score2-15-600-1 8830.2469
-histogram/score3/histogram-score3-15-600-1 8848.9241
-histogram/score4/histogram-score4-15-600-1 8895.7457
-histogram/score5/histogram-score5-15-600-1 8864.5943
-
-best memcost:  histogram-lru-15-600 7184.5438 decrease:  26.113740007534297 %
-minlen:  570
-fixed/lru/fixed-lru-15-600-1 64.3574
-fixed/random/fixed-random-15-600-1 61.7141
-fixed/maxmem/fixed-maxmem-15-600-1 71.6472
-fixed/score1/fixed-score1-15-600-1 72.1441
-fixed/score2/fixed-score2-15-600-1 72.1669
-fixed/score3/fixed-score3-15-600-1 72.1532
-fixed/score4/fixed-score4-15-600-1 72.1405
-fixed/score5/fixed-score5-15-600-1 72.2891
-histogram/lru/histogram-lru-15-600-1 64.5247
-histogram/random/histogram-random-15-600-1 62.0337
 histogram/maxmem/histogram-maxmem-15-600-1 71.8448
-histogram/score1/histogram-score1-15-600-1 72.0957
-histogram/score2/histogram-score2-15-600-1 72.1175
-histogram/score3/histogram-score3-15-600-1 72.1122
-histogram/score4/histogram-score4-15-600-1 72.0757
 histogram/score5/histogram-score5-15-600-1 72.2805
 
-best warmstart rate:  fixed-score5-15-600 72.2891 increase:  0.6184163641627485 %
+best warmstart rate:  histogram-score5-15-600 72.2805 increase:  0.60644611718593 %
 -----------------------------------------------------------
 minlen:  570
-fixed/lru/fixed-lru-15-800-1 0.6889
-fixed/random/fixed-random-15-800-1 0.6767
-fixed/maxmem/fixed-maxmem-15-800-1 0.5943
-fixed/score1/fixed-score1-15-800-1 0.5945
-fixed/score2/fixed-score2-15-800-1 0.5946
-fixed/score3/fixed-score3-15-800-1 0.5955
-fixed/score4/fixed-score4-15-800-1 0.5941
-fixed/score5/fixed-score5-15-800-1 0.5997
-histogram/lru/histogram-lru-15-800-1 0.6887
-histogram/random/histogram-random-15-800-1 0.676
 histogram/maxmem/histogram-maxmem-15-800-1 0.5873
-histogram/score1/histogram-score1-15-800-1 0.5878
-histogram/score2/histogram-score2-15-800-1 0.5879
-histogram/score3/histogram-score3-15-800-1 0.5891
-histogram/score4/histogram-score4-15-800-1 0.5874
 histogram/score5/histogram-score5-15-800-1 0.5944
 
 best coldstart rate:  histogram-maxmem-15-800 0.5873 decrease:  0.0 %
 minlen:  570
-fixed/lru/fixed-lru-15-800-1 71314.6459 570
-fixed/random/fixed-random-15-800-1 80853.8078 570
-fixed/maxmem/fixed-maxmem-15-800-1 51527.8406 570
-fixed/score1/fixed-score1-15-800-1 48126.1553 570
-fixed/score2/fixed-score2-15-800-1 47543.346 570
-fixed/score3/fixed-score3-15-800-1 47875.4027 570
-fixed/score4/fixed-score4-15-800-1 48211.5132 570
-fixed/score5/fixed-score5-15-800-1 49186.554 570
-histogram/lru/histogram-lru-15-800-1 70701.7867 570
-histogram/random/histogram-random-15-800-1 80423.25 570
 histogram/maxmem/histogram-maxmem-15-800-1 51430.3036 570
-histogram/score1/histogram-score1-15-800-1 47932.0906 570
-histogram/score2/histogram-score2-15-800-1 47251.8127 570
-histogram/score3/histogram-score3-15-800-1 47649.7204 570
-histogram/score4/histogram-score4-15-800-1 48034.7527 570
 histogram/score5/histogram-score5-15-800-1 49159.7845 570
 
-best timecost:  histogram-score2-15-800 47251.8127 decrease:  8.124569772129437 %
+best timecost:  histogram-score5-15-800 49159.7845 decrease:  4.414749556329661 %
 minlen:  570
-fixed/lru/fixed-lru-15-800-1 4591.7898
-fixed/random/fixed-random-15-800-1 5192.4411
-fixed/maxmem/fixed-maxmem-15-800-1 6816.9222
-fixed/score1/fixed-score1-15-800-1 6375.6472
-fixed/score2/fixed-score2-15-800-1 6307.7592
-fixed/score3/fixed-score3-15-800-1 6332.046
-fixed/score4/fixed-score4-15-800-1 6395.6126
-fixed/score5/fixed-score5-15-800-1 6331.5085
-histogram/lru/histogram-lru-15-800-1 4594.3891
-histogram/random/histogram-random-15-800-1 5180.692
-histogram/maxmem/histogram-maxmem-15-800-1 7053.4465
-histogram/score1/histogram-score1-15-800-1 6636.5579
-histogram/score2/histogram-score2-15-800-1 6563.9765
-histogram/score3/histogram-score3-15-800-1 6581.4567
-histogram/score4/histogram-score4-15-800-1 6658.3
-histogram/score5/histogram-score5-15-800-1 6589.893
-
-best memcost:  fixed-lru-15-800 4591.7898 decrease:  34.90005488806076 %
-minlen:  570
-fixed/lru/fixed-lru-15-800-1 81.2925
-fixed/random/fixed-random-15-800-1 79.8889
-fixed/maxmem/fixed-maxmem-15-800-1 86.9468
-fixed/score1/fixed-score1-15-800-1 86.6648
-fixed/score2/fixed-score2-15-800-1 86.6569
-fixed/score3/fixed-score3-15-800-1 86.6529
-fixed/score4/fixed-score4-15-800-1 86.6332
-fixed/score5/fixed-score5-15-800-1 86.6789
-histogram/lru/histogram-lru-15-800-1 81.2521
-histogram/random/histogram-random-15-800-1 79.9402
 histogram/maxmem/histogram-maxmem-15-800-1 86.6394
-histogram/score1/histogram-score1-15-800-1 86.274
-histogram/score2/histogram-score2-15-800-1 86.2691
-histogram/score3/histogram-score3-15-800-1 86.2527
-histogram/score4/histogram-score4-15-800-1 86.2488
 histogram/score5/histogram-score5-15-800-1 86.264
 
-best warmstart rate:  fixed-maxmem-15-800 86.9468 increase:  0.354803934468615 %
+best warmstart rate:  histogram-maxmem-15-800 86.6394 increase:  0.0 %
 -----------------------------------------------------------
